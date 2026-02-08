@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://board/board.gd" id="1_board_script"]
+[ext_resource type="PackedScene" path="res://cards/card.tscn" id="2_card_scene"]
+
+[node name="GameBoard" type="Node2D"]
+script = ExtResource("1_board_script")
+card_scene = ExtResource("2_card_scene")
+
+[node name="CardsContainer" type="Node2D" parent="."]

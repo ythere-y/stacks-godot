@@ -1,0 +1,36 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://cards/card.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="2_icon"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_card"]
+size = Vector2(128, 128)
+
+[node name="Card" type="Area2D"]
+script = ExtResource("1_script")
+
+[node name="Background" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-64, -64, 64, -64, 64, 64, -64, 64)
+color = Color(0.95, 0.95, 0.95, 1)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_icon")
+scale = Vector2(0.6, 0.6)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_card")
+
+[node name="Highlight" type="Line2D" parent="."]
+visible = false
+points = PackedVector2Array(-68, -68, 68, -68, 68, 68, -68, 68, -68, -68)
+width = 3.0
+default_color = Color(1, 0.8, 0.2, 0.9)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -64.0
+offset_top = 64.0
+offset_right = 64.0
+offset_bottom = 87.0
+text = "Card Name"
+horizontal_alignment = 1
+vertical_alignment = 1
