@@ -21,19 +21,23 @@ signal drag_ended(card)
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var label: Label = $Label
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
-@onready var background: Polygon2D = $Background
+@onready var background: Control = $Background # Changed to Control (Panel)
 @onready var highlight: Line2D = $Highlight
 
 # ------------------------------------------------------------------------------
 # State Variables
 # ------------------------------------------------------------------------------
-# Robust Hover Logic: Maintain a list of ALL cards currently under the mouse.
+# Robust Hover Logic
 static var _hover_candidates: Array[Card] = []
 static var hovered_card: Card = null
 
 var is_dragging: bool = false
 var drag_offset: Vector2 = Vector2.ZERO
 var hover_target: Card = null
+
+# Physics Variables
+var velocity: Vector2 = Vector2.ZERO
+var _last_mouse_pos: Vector2 = Vector2.ZERO
 
 # Linked List Structure for Stacks
 var card_below: Card = null
@@ -62,14 +66,40 @@ func _update_visuals():
 	if data:
 		if label: label.text = data.get("display_name")
 		if sprite: sprite.texture = data.get("icon")
-		if background: background.color = data.get("background_color")
+		# Use self_modulate for Panel stylebox coloring
+		if background: background.self_modulate = data.get("background_color")
 
 func _process(delta):
 	if is_dragging:
 		_process_dragging(delta)
 	else:
-		# If we have a parent, we want to follow it with lag (snake effect)
+		# Inertia / Slide Physics (When dropped on ground)
+		if not card_below:
+			if velocity.length_squared() > 1.0:
+				global_position += velocity * delta
+				velocity = velocity.lerp(Vector2.ZERO, delta * 5.0) # Friction
+				
+				# Keep within screen bounds ( Optional, simple bounce )
+				var vp_rect = get_viewport_rect()
+				var margin = 50.0
+				if global_position.x < margin: 
+					global_position.x = margin
+					velocity.x *= -0.5
+				if global_position.x > vp_rect.size.x - margin: 
+					global_position.x = vp_rect.size.x - margin
+					velocity.x *= -0.5
+				if global_position.y < margin: 
+					global_position.y = margin
+					velocity.y *= -0.5
+				if global_position.y > vp_rect.size.y - margin: 
+					global_position.y = vp_rect.size.y - margin
+					velocity.y *= -0.5
+			else:
+				velocity = Vector2.ZERO
+		
+		# Snake Follow Logic (When in stack)
 		if card_below:
+			velocity = Vector2.ZERO # Stop sliding if we get attached
 			_target_pos = card_below.global_position + Vector2(0, STACK_OFFSET)
 			# Do the lerp
 			if global_position.distance_squared_to(_target_pos) > 1.0:
@@ -286,8 +316,15 @@ func end_drag():
 	_try_stack_on_nearest()
 
 func _process_dragging(delta):
+	var mouse_pos = get_global_mouse_position()
+	
+	# Calculate velocity for inertia release
+	var current_velocity = (mouse_pos - drag_offset - global_position) / delta
+	# Smooth out the velocity calculation
+	velocity = velocity.lerp(current_velocity, 0.2)
+	
 	# Leader moves instantly
-	global_position = get_global_mouse_position() - drag_offset
+	global_position = mouse_pos - drag_offset
 	
 	# Children follow via _process() logic (they have card_below = me), 
 	# but we need to ensure their logic runs. Since _process runs on everyone, 

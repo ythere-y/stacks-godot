@@ -2,3 +2,5 @@
 .godot/
 /android/
 **.uid
+godot_state_charts_examples/
+addons/
