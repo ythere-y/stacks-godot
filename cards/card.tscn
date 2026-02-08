@@ -4,33 +4,45 @@
 [ext_resource type="Texture2D" path="res://icon.svg" id="2_icon"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_card"]
-size = Vector2(128, 128)
+size = Vector2(140, 190)
 
 [node name="Card" type="Area2D"]
 script = ExtResource("1_script")
 
+[node name="Shadow" type="Polygon2D" parent="."]
+position = Vector2(4, 4)
+color = Color(0, 0, 0, 0.2)
+polygon = PackedVector2Array(-70, -95, 70, -95, 70, 95, -70, 95)
+
 [node name="Background" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(-64, -64, 64, -64, 64, 64, -64, 64)
 color = Color(0.95, 0.95, 0.95, 1)
+polygon = PackedVector2Array(-70, -95, 70, -95, 70, 95, -70, 95)
+
+[node name="TitleBar" type="Polygon2D" parent="."]
+color = Color(0, 0, 0, 0.1)
+polygon = PackedVector2Array(-70, -95, 70, -95, 70, -65, -70, -65)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, 15)
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("2_icon")
-scale = Vector2(0.6, 0.6)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_card")
 
 [node name="Highlight" type="Line2D" parent="."]
 visible = false
-points = PackedVector2Array(-68, -68, 68, -68, 68, 68, -68, 68, -68, -68)
-width = 3.0
+points = PackedVector2Array(-70, -95, 70, -95, 70, 95, -70, 95, -70, -95)
+width = 4.0
 default_color = Color(1, 0.8, 0.2, 0.9)
 
 [node name="Label" type="Label" parent="."]
-offset_left = -64.0
-offset_top = 64.0
-offset_right = 64.0
-offset_bottom = 87.0
+offset_left = -65.0
+offset_top = -93.0
+offset_right = 65.0
+offset_bottom = -67.0
+theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 14
 text = "Card Name"
 horizontal_alignment = 1
 vertical_alignment = 1

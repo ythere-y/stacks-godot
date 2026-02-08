@@ -22,25 +22,23 @@ func _ready():
 		push_error("Card scene is NOT assigned in GameBoard!")
 
 func _spawn_test_cards():
-	var test_cards = [
-		{"id": "villager", "name": "Villager", "color": Color(0.92, 0.92, 0.92)},
-		{"id": "berry_bush", "name": "Berry Bush", "color": Color(0.55, 0.85, 0.55)},
-		{"id": "stone", "name": "Stone", "color": Color(0.7, 0.7, 0.75)},
-		{"id": "wood", "name": "Wood", "color": Color(0.82, 0.68, 0.48)},
-		{"id": "gold", "name": "Gold", "color": Color(0.95, 0.82, 0.35)},
-		{"id": "slime", "name": "Slime", "color": Color(0.55, 0.7, 0.9)}
+	var test_ids = [
+		"villager", "berry_bush", "stone", "wood", "gold", 
+		"slime", "militia", "sword", "house", "garden"
 	]
 
-	var start_pos = Vector2(260, 260)
-	var spacing = Vector2(160, 0)
-	var index = 0
-	for entry in test_cards:
-		var data = CardDataRes.new()
-		data.id = entry["id"]
-		data.display_name = entry["name"]
-		data.background_color = entry["color"]
-		spawn_card(entry["id"], start_pos + spacing * index, data)
-		index += 1
+	var screen_size = get_viewport_rect().size
+	
+	for i in range(12): 
+		var id = test_ids.pick_random()
+		# Use the new Library to create data
+		var data = CardLibrary.create_data(id)
+		
+		# Random position
+		var rand_x = randf_range(100, screen_size.x - 100)
+		var rand_y = randf_range(100, screen_size.y - 100)
+		
+		spawn_card(id, Vector2(rand_x, rand_y), data)
 
 func spawn_card(card_id: String, pos: Vector2, data: Resource = null):
 	var new_card = card_scene.instantiate()

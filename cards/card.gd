@@ -5,7 +5,10 @@ extends Area2D
 # Constants & Signals
 # ------------------------------------------------------------------------------
 const SNAP_DISTANCE := 60.0
-const STACK_OFFSET := 25.0
+const STACK_OFFSET := 45.0 # Increased from 25.0 to 45.0 for better visibility
+
+# Physics for "Snake/Trail" effect
+const FOLLOW_SPEED := 15.0 # Higher = tighter, Lower = more loose/trail
 
 signal drag_started(card)
 signal drag_ended(card)
@@ -24,26 +27,29 @@ signal drag_ended(card)
 # ------------------------------------------------------------------------------
 # State Variables
 # ------------------------------------------------------------------------------
-# Static variable acts as a "Singleton" for hover state across ALL cards.
-# Only ONE card can be the 'hovered_card' at a time (globally).
-static var hovered_card: Card = null 
+# Robust Hover Logic: Maintain a list of ALL cards currently under the mouse.
+static var _hover_candidates: Array[Card] = []
+static var hovered_card: Card = null
 
 var is_dragging: bool = false
 var drag_offset: Vector2 = Vector2.ZERO
-var hover_target: Card = null # Target we are hovering over to drop/stack
+var hover_target: Card = null
 
 # Linked List Structure for Stacks
 var card_below: Card = null
 var card_above: Card = null
+
+# Target position for snake movement (smooth following)
+var _target_pos: Vector2 = Vector2.ZERO
+var _detached_parent: Card = null # Logic to restore stack if drag is interrupted (e.g. by sorting)
 
 # ------------------------------------------------------------------------------
 # Lifecycle
 # ------------------------------------------------------------------------------
 func _ready():
 	_update_visuals()
+	_target_pos = global_position
 	
-	# Input Setup
-	# We subscribe to input_event to handle clicks *before* unhandled_input
 	input_event.connect(_on_input_event)
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
@@ -58,71 +64,95 @@ func _update_visuals():
 		if sprite: sprite.texture = data.get("icon")
 		if background: background.color = data.get("background_color")
 
-func _process(_delta):
+func _process(delta):
 	if is_dragging:
-		_process_dragging()
+		_process_dragging(delta)
+	else:
+		# If we have a parent, we want to follow it with lag (snake effect)
+		if card_below:
+			_target_pos = card_below.global_position + Vector2(0, STACK_OFFSET)
+			# Do the lerp
+			if global_position.distance_squared_to(_target_pos) > 1.0:
+				global_position = global_position.lerp(_target_pos, delta * FOLLOW_SPEED)
+			else:
+				global_position = _target_pos
+			
+			# Propagate z-index implicitly or via checks? 
+			# Reflow logic usually handles Z, but let's ensure it here just is case
+			if z_index != card_below.z_index + 1:
+				z_index = card_below.z_index + 1
 
 # ------------------------------------------------------------------------------
-# Input Handling (The Fix for Overlaps)
+# Input Handling (Refined Robustness)
 # ------------------------------------------------------------------------------
 func _on_input_event(viewport, event, _shape_idx):
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event.pressed:
-			# Only allow drag if I am explicitly the hovered card
-			# This prevents clicking "through" a card to one below it
+	if event is InputEventMouseButton:
+		# Double Click: Auto Sort/Categorize Stack
+		if event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
+			if Card.hovered_card == self:
+				_sort_stack_logic()
+				viewport.set_input_as_handled()
+				return # Don't start drag on double click
+
+		# Left Click: Drag
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			if Card.hovered_card == self:
 				start_drag()
 				viewport.set_input_as_handled()
+				
+		# Right Click: Extract Single Card
+		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			if Card.hovered_card == self:
+				start_drag(true) # Pass true for "extract single"
+				viewport.set_input_as_handled()
 
 func _input(event):
-	# Global input check for mouse release (drop)
-	if is_dragging and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
-		end_drag()
-		get_viewport().set_input_as_handled()
+	if is_dragging and event is InputEventMouseButton and not event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			end_drag()
+			get_viewport().set_input_as_handled()
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			end_drag()
+			get_viewport().set_input_as_handled()
 
 func _on_mouse_entered():
-	# When mouse enters ANY card, we recalculate who should own the hover state
-	_update_global_hover_state()
+	if not Card._hover_candidates.has(self):
+		Card._hover_candidates.append(self)
+	_recalculate_global_hover()
 
 func _on_mouse_exited():
-	# If I was the hovered card and mouse leaves ME, clear the state
-	if Card.hovered_card == self:
-		Card.hovered_card = null
-		_set_hover_scale(false)
+	if Card._hover_candidates.has(self):
+		Card._hover_candidates.erase(self)
+	_recalculate_global_hover()
+
+static func _recalculate_global_hover():
+	# Find the best candidate from the list
+	var winner: Card = null
+	
+	if _hover_candidates.size() > 0:
+		winner = _hover_candidates[0]
+		for c in _hover_candidates:
+			# Priority: Higher Z-Index > Higher Tree Index
+			if c.is_visually_above(winner):
+				winner = c
+	
+	# Update state
+	if hovered_card != winner:
+		# Deactivate old
+		if hovered_card and is_instance_valid(hovered_card):
+			hovered_card._set_hover_scale(false)
 		
-		# Optional: If there's another overlapping card strictly "below" the mouse now,
-		# Godot will likely trigger _on_mouse_entered for THAT card immediately after this frame,
-		# or we might need to rely on the physics engine to resolve it.
-		# For simplicity, we just clear. The next card's enter event will clame it.
-
-func _update_global_hover_state():
-	# 1. If nobody owns hover, I take it.
-	if Card.hovered_card == null:
-		_claim_hover()
-		return
-
-	# 2. If someone owns it, but it's not me...
-	if Card.hovered_card != self:
-		# check if I am strictly "above" the current owner visually
-		if self.is_visually_above(Card.hovered_card):
-			# I steal the focus
-			Card.hovered_card._set_hover_scale(false) # Un-highlight them
-			_claim_hover()
-
-func _claim_hover():
-	if not is_dragging:
-		Card.hovered_card = self
-		_set_hover_scale(true)
+		# Activate new
+		hovered_card = winner
+		if hovered_card:
+			hovered_card._set_hover_scale(true)
 
 func is_visually_above(other: Card) -> bool:
 	if self.z_index > other.z_index: return true
 	if self.z_index < other.z_index: return false
-	
-	# If Z-index is identical, Godot draws based on Tree Order (lower index = drawn first/behind, higher = last/front)
 	return self.get_index() > other.get_index()
 
 func _set_hover_scale(active: bool):
-	# Don't tween scale if we are the one being dragged (drag logic handles scale)
 	if is_dragging: return
 	
 	var target_scale = Vector2(1.05, 1.05) if active else Vector2(1.0, 1.0)
@@ -132,34 +162,122 @@ func _set_hover_scale(active: bool):
 # ------------------------------------------------------------------------------
 # Dragging Logic
 # ------------------------------------------------------------------------------
-func start_drag():
+func start_drag(extract_single: bool = false):
 	is_dragging = true
 	drag_offset = get_global_mouse_position() - global_position
 	
-	# Visuals: Pop stack to front
-	_set_z_index_recursive(100) # Ensure we are way above everything
-	move_to_front() # Ensure tree order (input priority) matches Z
+	_set_z_index_recursive(100)
+	move_to_front()
 	
-	# Animate Scale Recursively (New Feature)
-	_animate_stack_scale(true)
+	if not extract_single:
+		_animate_stack_scale(true)
+	else:
+		_set_hover_scale(true)
 	
 	emit_signal("drag_started", self)
 	
-	# Detach from parent stack if needed
 	if card_below:
-		var old_root = card_below.get_stack_root()
-		card_below.card_above = null
-		card_below = null
-		_reflow_stack_logic(old_root)
+		var parent = card_below
+		_detached_parent = parent # Remember who we detached from
+		var old_root = parent.get_stack_root()
+		
+		# Right Click Logic: Bridge elements
+		if extract_single:
+			if card_above:
+				parent.card_above = card_above
+				card_above.card_below = parent
+				# Force immediate visual snap of the gap for better feedback
+				card_above._target_pos = parent.global_position + Vector2(0, STACK_OFFSET)
+				_reflow_stack_logic(old_root, false)
+			else:
+				parent.card_above = null
+			
+			card_below = null
+			card_above = null
+		else:
+			# Normal Logic
+			parent.card_above = null
+			card_below = null
+			_reflow_stack_logic(old_root, false)
+			
+	else:
+		_detached_parent = null
+		# Root Logic
+		if extract_single and card_above:
+			var new_root = card_above
+			new_root.card_below = null
+			new_root.z_index = 0
+			_reflow_stack_logic(new_root, false)
+			card_above = null
 	
-	# Reflow my own stack immediately to ensure children follow tightly in tree
 	_reflow_stack_logic(self)
+	_reorder_tree_recursive(self)
+
+func _sort_stack_logic():
+	# 0. Handle Active Drag Interaction
+	var restore_parent: Card = null
+	
+	if is_dragging:
+		# Cancel the drag immediately
+		is_dragging = false
+		_animate_stack_scale(false)
+		
+		# If we just detached from someone, try to re-attach
+		if _detached_parent and is_instance_valid(_detached_parent) and _detached_parent.card_above == null:
+			restore_parent = _detached_parent
+		
+		# Reset internal detached tracker
+		_detached_parent = null
+	else:
+		restore_parent = self.card_below
+	
+	# 1. Collect all cards in this substack
+	var stack_list: Array[Card] = []
+	var current = self
+	
+	# Capture valid base position for root stacks
+	var old_base_pos = global_position
+	
+	while current:
+		stack_list.append(current)
+		current = current.card_above
+		
+	if stack_list.size() < 2: return # Nothing to sort
+	
+	# 2. Sort by ID (or Display Name)
+	stack_list.sort_custom(func(a, b): return a.data.id < b.data.id)
+	
+	# 3. Re-link them
+	var root = stack_list[0]
+	root.card_below = restore_parent # Connect to the restored parent
+	
+	if root.card_below:
+		root.card_below.card_above = root
+		
+	for i in range(stack_list.size()):
+		var c = stack_list[i]
+		if i > 0:
+			c.card_below = stack_list[i - 1]
+			stack_list[i - 1].card_above = c
+			
+		if i == stack_list.size() - 1:
+			c.card_above = null
+			
+	# 4. Reflow
+	# If I have a parent (restored or original), reflow from absolute root
+	if root.card_below:
+		_reflow_stack_logic(root.get_stack_root(), true) # True for hard snap
+	else:
+		# If I am the new root (on ground), snap to the old position
+		root.global_position = old_base_pos
+		root._target_pos = old_base_pos
+		_reflow_stack_logic(root, true)
 
 func end_drag():
 	is_dragging = false
+	_detached_parent = null # Clear history on successful drop
 	_animate_stack_scale(false)
 	
-	# Clear highlight on drop target
 	if hover_target:
 		hover_target._set_highlight(false)
 		hover_target = null
@@ -167,15 +285,17 @@ func end_drag():
 	emit_signal("drag_ended", self)
 	_try_stack_on_nearest()
 
-func _process_dragging():
+func _process_dragging(delta):
+	# Leader moves instantly
 	global_position = get_global_mouse_position() - drag_offset
-	# Sync children positions frame-by-frame
-	_sync_stack_positions()
-	# Check for drop targets
+	
+	# Children follow via _process() logic (they have card_below = me), 
+	# but we need to ensure their logic runs. Since _process runs on everyone, 
+	# the children will automatically verify 'card_below' and lerp towards me.
+	# We just need to check for Drop Targets here.
 	_update_drop_target()
 
 func _animate_stack_scale(dragging: bool):
-	# "Lift" effect for the whole stack
 	var s = Vector2(1.1, 1.1) if dragging else Vector2(1.0, 1.0)
 	var current = self
 	while current:
@@ -184,7 +304,7 @@ func _animate_stack_scale(dragging: bool):
 		current = current.card_above
 
 # ------------------------------------------------------------------------------
-# Stacking Logic (Refactored)
+# Stacking Logic
 # ------------------------------------------------------------------------------
 func _update_drop_target():
 	var new_target = _find_valid_stack_target()
@@ -196,17 +316,15 @@ func _update_drop_target():
 func _find_valid_stack_target() -> Card:
 	var areas = get_overlapping_areas()
 	var best_target: Card = null
-	var min_dist = INF
+	# Increase search text radius slightly to make snapping feel magnetic
+	var min_dist = SNAP_DISTANCE + 20.0
 	
 	for area in areas:
 		if not (area is Card) or area == self: continue
-		if _is_in_my_stack(area): continue # Don't stack on self children
-		
-		# Extra check: Are we accidentally trying to stack on a card that is visually ABOVE us (impossible/weird)?
-		# Actually, standard overlapping logic finds anything. logic usually favors stacking "onto" something below.
+		if _is_in_my_stack(area): continue
 		
 		var dist = global_position.distance_to(area.global_position)
-		if dist < SNAP_DISTANCE and dist < min_dist:
+		if dist < min_dist:
 			min_dist = dist
 			best_target = area
 			
@@ -217,57 +335,52 @@ func _try_stack_on_nearest():
 	if target:
 		_perform_stack(target)
 	else:
-		# Dropped on emptiness.
-		# Reset Z-Index to baseline (0) + offsets
 		z_index = 0
-		_reflow_stack_logic(self)
+		# Changed hard_snap_pos to false to preserve trail effect when dropping on ground
+		_reflow_stack_logic(self, false)
 
 func _perform_stack(target_card: Card):
-	# We always append to the VERY TOP of the target's stack
 	var stack_top = target_card
 	while stack_top.card_above:
 		stack_top = stack_top.card_above
 		
-	# Check for loops (paranoia)
 	if stack_top == self: return 
 	
 	stack_top.card_above = self
 	self.card_below = stack_top
 	
-	# Reflow EVERYONE starting from the absolute root
-	_reflow_stack_logic(stack_top.get_stack_root())
+	# Changed hard_snap_pos to false to preserve trail effect when stacking
+	_reflow_stack_logic(stack_top.get_stack_root(), false)
 
-func _reflow_stack_logic(root: Card):
+func _reflow_stack_logic(root: Card, hard_snap_pos: bool = false):
 	var current = root.card_above
 	var index = 1
 	var nodes = [root]
 	
-	# Reset root Z logic
 	if not root.is_dragging and not root.card_below:
 		root.z_index = 0
 	
 	while current:
 		nodes.append(current)
-		# Position Snap
-		current.global_position = root.global_position + Vector2(0, STACK_OFFSET * index)
-		# Z-Index Snap
+		
+		# Update Logic
 		current.z_index = root.z_index + index
+		
+		# If hard snap is requested (e.g. on drop), force position
+		if hard_snap_pos:
+			current.global_position = root.global_position + Vector2(0, STACK_OFFSET * index)
+			current._target_pos = current.global_position # Reset lerp target
+			
 		current = current.card_above
 		index += 1
 	
-	# Critical: Reorder Godot Scene Tree
-	# This ensures the visual rendering AND input event order (front = first) match our logic
 	for node in nodes:
 		node.move_to_front()
 
-func _sync_stack_positions():
-	# Only sync positions, expensive tree reordering is done on DragStart/End
-	var current = self.card_above
-	var index = 1
-	while current:
-		current.global_position = global_position + Vector2(0, STACK_OFFSET * index)
-		current = current.card_above
-		index += 1
+func _reorder_tree_recursive(node: Card):
+	node.move_to_front()
+	if node.card_above:
+		_reorder_tree_recursive(node.card_above)
 
 # ------------------------------------------------------------------------------
 # Helpers
