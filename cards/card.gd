@@ -1,11 +1,11 @@
 class_name Card
 extends Area2D
-
 # ------------------------------------------------------------------------------
 # Constants & Signals
 # ------------------------------------------------------------------------------
 const SNAP_DISTANCE := 60.0
-const STACK_OFFSET := 45.0 # Increased from 25.0 to 45.0 for better visibility
+const STACK_OFFSET := Gamesettings.STACK_OFFSET
+const HOVER_SCALE := Gamesettings.HOVER_SCALE
 # Physics for "Snake/Trail" effect
 const FOLLOW_SPEED := 15.0 # Higher = tighter, Lower = more loose/trail
 
@@ -42,7 +42,6 @@ var is_dragging: bool = false
 var drag_offset: Vector2 = Vector2.ZERO
 var hover_target: Card = null
 var velocity: Vector2 = Vector2.ZERO
-var _last_mouse_pos: Vector2 = Vector2.ZERO
 
 var card_below: Card = null # The card directly below me in the stack (null if I'm on the ground)
 var card_above: Card = null # The card directly above me in the stack (null if I'm the top)
@@ -59,11 +58,16 @@ func _ready():
 		progress_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if layout:
 		layout.resized.connect(_on_ui_resized)
+		layout.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_update_visuals()
 	_target_pos = global_position
+	
+	_on_ui_resized()
+
 	input_event.connect(_on_input_event)
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
+
 
 func setup(new_data: Resource):
 	data = new_data
@@ -246,8 +250,7 @@ func is_visually_above(other: Card) -> bool:
 
 func _set_hover_scale(active: bool):
 	if is_dragging: return
-	
-	var target_scale = Vector2(1.05, 1.05) if active else Vector2(1.0, 1.0)
+	var target_scale = Vector2(HOVER_SCALE, HOVER_SCALE) if active else Vector2(1.0, 1.0)
 	var tween = create_tween()
 	tween.tween_property(self , "scale", target_scale, 0.1)
 
@@ -376,7 +379,6 @@ func end_drag():
 	
 	emit_signal("drag_ended", self )
 	_try_stack_on_nearest()
-	check_for_recipes()
 
 func _process_dragging(delta):
 	var mouse_pos = get_global_mouse_position()
@@ -396,12 +398,12 @@ func _process_dragging(delta):
 	_update_drop_target()
 
 func _animate_stack_scale(dragging: bool):
-	var s = Vector2(1.05, 1.05) if dragging else Vector2(1.0, 1.0)
+	var s = Vector2(HOVER_SCALE, HOVER_SCALE) if dragging else Vector2(1.0, 1.0)
 	var current = self
 	while current:
 		var tween = create_tween()
 		# 缩放整个 Layout 容器
-		tween.tween_property(current.layout, "scale", s, 0.1)
+		tween.tween_property(current, "scale", s, 0.1)
 		current = current.card_above
 # ------------------------------------------------------------------------------
 # Stacking Logic
@@ -505,10 +507,9 @@ func get_stack_ids() -> Dictionary:
 		current = current.card_above # Move up the stack
 	return ids
 func check_for_recipes():
-# 这是一个简化版，实际项目中建议用 RecipeManager
 	var stack_content = get_stack_ids()
 	print("Checking Recipe with stack: ", stack_content)
-	
+
 	# 仅做测试用的硬编码逻辑
 	if "villager" in stack_content and "berry_bush" in stack_content:
 		# 模拟一个 Recipe 资源

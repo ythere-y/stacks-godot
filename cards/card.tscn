@@ -40,16 +40,19 @@ offset_right = 70.0
 offset_bottom = 95.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme_override_constants/separation = 6
 alignment = 1
 
 [node name="CardVisuals" type="PanelContainer" parent="Layout" unique_id=1970494196]
 layout_mode = 2
 size_flags_vertical = 3
+mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 
 [node name="MarginContainer" type="MarginContainer" parent="Layout/CardVisuals" unique_id=4932831]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/margin_left = 15
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
@@ -57,6 +60,7 @@ theme_override_constants/margin_bottom = 15
 
 [node name="Content" type="VBoxContainer" parent="Layout/CardVisuals/MarginContainer" unique_id=1508155905]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 8
 
 [node name="Label" type="Label" parent="Layout/CardVisuals/MarginContainer/Content" unique_id=1161649557]
@@ -90,8 +94,7 @@ stretch_mode = 5
 visible = false
 custom_minimum_size = Vector2(120, 16)
 offset_left = -60.0
-offset_top = -120.0  # 这里的 -120 让它刚好悬浮在卡牌（高度190，一半是95）的上方
-offset_right = 60.0
+offset_top = -120.0
 offset_bottom = -104.0
 mouse_filter = 2
 show_percentage = false

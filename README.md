@@ -80,9 +80,9 @@ This document tracks implemented features and planned improvements for the *Stac
 - [ ] **Production Logic (Timer System)**
   - **Goal**: The core mechanic of Stacklands.
   - **Implementation**: If valid Combo (e.g. `Villager` on `Berry Bush`), start a generic Timer on the `Villager`. When finished, spawn `Berry` card nearby.
-    - Use a `RecipeData` resource to define valid combinations and their outputs.
-    - Add `Villager` `Berry Bush` `Berry` card definitions to `CardLibrary`.
-    - Add a state machine or status system to cards to track "Idle", "Producing", "Ready" states.
+	- Use a `RecipeData` resource to define valid combinations and their outputs.
+	- Add `Villager` `Berry Bush` `Berry` card definitions to `CardLibrary`.
+	- Add a state machine or status system to cards to track "Idle", "Producing", "Ready" states.
 
 - [ ] **Consumption / Feeding**
   - **Goal**: Survival pressure.

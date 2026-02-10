@@ -3,5 +3,5 @@
         "cards/card.gd",
         "cards/card.tscn"
     ],
-    "task": "现在的问题是，如果processbar突然出现，那么会让card位置向下移动，这是不合理的，需要做修改，让process bar的出现不会影响card的位置。"
+    "task": "现在的问题是，鼠标放上去，卡牌变大，鼠标拖拽等功能都没了，请帮我修复这个问题。"
 }

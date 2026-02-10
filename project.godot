@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="Stacks_Godot"
+config/tags=PackedStringArray("demo")
 run/main_scene="res://board/game_board.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
@@ -19,10 +20,12 @@ config/icon="res://icon.svg"
 
 GameManager="*res://global/game_manager.gd"
 PhantomCameraManager="*uid://duq6jhf6unyis"
+Log="*uid://dgbct5kd0hhr6"
+Gamesettings="*uid://bn7q43p31hpjj"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/godot_state_charts/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/phantom_camera/plugin.cfg")
+enabled=PackedStringArray("res://addons/gut/plugin.cfg", "res://addons/logger/plugin.cfg", "res://addons/phantom_camera/plugin.cfg")
 
 [physics]
 
