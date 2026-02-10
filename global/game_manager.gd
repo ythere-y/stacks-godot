@@ -7,6 +7,8 @@ signal gold_changed(new_amount)
 
 var current_day: int = 1
 var gold: int = 0
+var card_library: CardLibrary
+var recipes: RecipeData
 
 func add_gold(amount: int):
 	gold += amount

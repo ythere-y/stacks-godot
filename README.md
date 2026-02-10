@@ -1,6 +1,10 @@
-# Stacklands Clone - Godot Project Setup
+# Stacklands Clone - Godot 4 Framework
 
-This project is a starting point for a game like *Stacklands*, created with Godot 4 structure in mind.
+This project is a technical implementation of the core Stacklands card mechanics in Godot 4. It provides a robust foundation for building card-based survival or management games.
+
+## 🎯 Project Goal
+
+To provide a high-quality, bug-free implementation of complex card interactions (stacking, splitting, dragging, z-sorting) that developers can use as a starting point.
 
 ## 📂 Project Structure
 
@@ -14,36 +18,78 @@ This project is a starting point for a game like *Stacklands*, created with Godo
 - **`ui/`**: User interface elements (HUD, Menus).
 - **`assets/`**: Place your sprites, fonts, and sounds here.
 
-## 🚀 Getting Started (Editor Setup)
-
-Since script files are created but Scene (`.tscn`) files are binary/complex, follow these quick steps to link them in the Godot Editor:
-
-### 1. Create the Card Scene
-1.  Create a new **2D Scene**.
-2.  Change the root node type to **Area2D** and name it `Card`.
-3.  Attach the script `res://cards/card.gd` to the root node.
-4.  Add a **Sprite2D** child node (use `icon.svg` as a placeholder texture).
-5.  Add a **CollisionShape2D** child node. Give it a **RectangleShape2D** and size it to cover the sprite (approx 64x64 or similar).
-6.  Add a **Label** child node (for the card name).
-7.  **IMPORTANT:** Drag your `Sprite2D`, `CollisionShape2D`, and `Label` nodes into the script variables in the Inspector (under the "Card" script properties) or ensure the node names match the `@onready` paths in the code.
-8.  Save this scene as `res://cards/card.tscn`.
-
-### 2. Create Card Data
-1.  In the FileSystem dock, right-click `cards/` -> **New Resource**.
-2.  Search for **CardData**.
-3.  Create a few resources (e.g., `villager.tres`, `berry.tres`) and fill in their names and icons.
-
-### 3. Create the Game Board
-1.  Create a new **2D Scene**.
-2.  Name the root node `GameBoard`.
-3.  Attach the script `res://board/board.gd`.
-4.  Add a **Node2D** child and name it `CardsContainer`.
-5.  In the Inspector for `GameBoard`, assign your `card.tscn` to the **Card Scene** property.
-6.  Save as `res://board/game_board.tscn`.
-7.  Run the scene (F6)!
 
 ## 🛠 Next Steps (Implementation Ideas)
 
 - **Stacking Logic (`card.gd`)**: Currently, it detects overlap. You need to implement the "Timer" logic. When a specific combination stacks (e.g., Villager + Berry Bush), start a timer on the top card.
 - **Recipes**: Create a `RecipeData` resource that defines Inputs (Villager + Berry Bush) -> Outputs (Berry + Villager).
 - **Grid/Chaos**: Decide if you want cards to snap to a grid or be free-floating (current implementation is free-floating).
+
+---
+
+## 🛤️ Development Roadmap
+
+This document tracks implemented features and planned improvements for the *Stacklands*-inspired card game loop.
+
+### ✅ Completed Features
+- [x] **Core Architecture**
+  - [x] Linked List Data Structure (`card_below` / `card_above`) for handling stacks.
+  - [x] Resource-based Card Definitions (`CardLibrary`).
+  - [x] Recursive scene tree reordering (ensures Z-Index and Input priority match visuals).
+- [x] **Interaction**
+  - [x] **Smart Drag & Drop**: recursive "Snake" trail effect for child cards.
+  - [x] **Robust Hover**: Global `hover_candidates` list to solve Z-fighting/overlap selection issues.
+  - [x] **Sorting**: Double-click a stack to auto-sort by Card ID.
+  - [x] **Splitting**: Right-click drag to extract a single card from the middle of a stack.
+- [x] **Visuals & Polish**
+  - [x] **Poker Style Design**: Rectangular cards with Title Bar, Icon, and Label.
+  - [x] **UI Styling**: `StyleBoxFlat` with rounded corners (12px) and drop shadows.
+  - [x] **Physics Inertia**: Cards have momentum and friction when thrown/released.
+  - [x] **Screen Bounds**: Simple containment with bounce effect to keep cards on screen.
+
+### 🚀 Planned Features (Future Ideas)
+
+#### 1. Physics & Board Feel (Juiciness)
+> *Refining how the cards feel to move and interact.*
+
+- [ ] **Soft Collision / Separation (互斥力场)**
+  - **Goal**: Prevent non-stacked cards from overlapping messily on top of each other.
+  - **Implementation**: Add a small repulsion force (Steering Behavior) between cards that are *not* connected in a stack. If you drop a card near another, they should gently slide apart to sit side-by-side.
+
+- [ ] **Dynamic Tilt (拖拽倾斜)**
+  - **Goal**: Make cards feel like physical objects with air resistance.
+  - **Implementation**: Rotate the card container slightly based on `velocity.x` during dragging. (e.g., dragging left tilts the card right).
+
+- [ ] **Snap-to-Grid (网格吸附)**
+  - **Goal**: Allow for tidy board organization.
+  - **Implementation**: When dropping a card on valid "Ground" (not on another stack), snap its final `target_position` to the nearest 50px or 100px grid point.
+
+#### 2. Camera & Board Management
+> *Expanding the play area.*
+
+- [ ] **Infinite Canvas (Camera2D)**
+  - **Goal**: The game currently relies on window size. Real gameplay needs a larger space.
+  - **Implementation**: Add a `Camera2D` node.
+	- **Pan**: Middle Mouse Button to move camera.
+	- **Zoom**: Mouse Wheel to zoom in/out.
+	- **Bounds**: Draw a simple background grid that extends infinitely in all directions.
+  	- draw a rectangle boundary (e.g., 2000x2000) to indicate the "playable area".
+  	- Cards can be moved anywhere within this area, but not outside of it.
+
+#### 3. Gameplay Mechanics (The "Game" Part)
+- [ ] **Production Logic (Timer System)**
+  - **Goal**: The core mechanic of Stacklands.
+  - **Implementation**: If valid Combo (e.g. `Villager` on `Berry Bush`), start a generic Timer on the `Villager`. When finished, spawn `Berry` card nearby.
+    - Use a `RecipeData` resource to define valid combinations and their outputs.
+    - Add `Villager` `Berry Bush` `Berry` card definitions to `CardLibrary`.
+    - Add a state machine or status system to cards to track "Idle", "Producing", "Ready" states.
+
+- [ ] **Consumption / Feeding**
+  - **Goal**: Survival pressure.
+  - **Implementation**: End-of-day timer that requires consuming Food cards.
+
+- [ ] **Card Spawning Animations**
+  - **Goal**: Visual feedback for rewards.
+  - **Implementation**: Cards should "pop" out of booster packs or production outputs with a juicy scale/bounce animation.
+
+---

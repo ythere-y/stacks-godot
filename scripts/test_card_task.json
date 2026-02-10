@@ -1,0 +1,9 @@
+{
+    "files": [
+        "cards/test_card_logic.tscn",
+        "cards/test_card_logic.gd",
+        "cards/card.gd",
+        "cards/card.tscn"
+    ],
+    "task": ""
+}

@@ -3,61 +3,67 @@ extends RefCounted
 
 const DEFINITIONS = {
 	"villager": {
-		"name": "Villager", 
+		"name": "Villager",
 		"color": Color(0.92, 0.92, 0.92),
-		"icon": "res://icon.svg", # Placeholder
+		"icon": "res://assets/villager.png", # Placeholder
 		"type": "unit"
 	},
 	"berry_bush": {
-		"name": "Berry Bush", 
+		"name": "Berry Bush",
 		"color": Color(0.55, 0.85, 0.55),
 		"icon": "res://icon.svg",
 		"type": "resource_source"
 	},
+	"berry": {
+		"name": "Berry",
+		"color": Color(0.9, 0.3, 0.5),
+		"icon": "res://icon.svg",
+		"type": "food"
+	},
 	"stone": {
-		"name": "Stone", 
+		"name": "Stone",
 		"color": Color(0.7, 0.7, 0.75),
 		"icon": "res://icon.svg",
 		"type": "resource"
 	},
 	"wood": {
-		"name": "Wood", 
+		"name": "Wood",
 		"color": Color(0.82, 0.68, 0.48),
 		"icon": "res://icon.svg",
 		"type": "resource"
 	},
 	"gold": {
-		"name": "Gold", 
+		"name": "Gold",
 		"color": Color(0.95, 0.82, 0.35),
 		"icon": "res://icon.svg",
 		"type": "currency"
 	},
 	"slime": {
-		"name": "Slime", 
+		"name": "Slime",
 		"color": Color(0.55, 0.7, 0.9),
 		"icon": "res://icon.svg",
 		"type": "enemy"
 	},
 	"militia": {
-		"name": "Militia", 
+		"name": "Militia",
 		"color": Color(0.85, 0.3, 0.3),
 		"icon": "res://icon.svg",
 		"type": "unit"
 	},
 	"sword": {
-		"name": "Sword", 
+		"name": "Sword",
 		"color": Color(0.75, 0.75, 0.8),
 		"icon": "res://icon.svg",
 		"type": "equipment"
 	},
 	"house": {
-		"name": "House", 
+		"name": "House",
 		"color": Color(0.7, 0.5, 0.3),
 		"icon": "res://icon.svg",
 		"type": "building"
 	},
 	"garden": {
-		"name": "Garden", 
+		"name": "Garden",
 		"color": Color(0.4, 0.8, 0.4),
 		"icon": "res://icon.svg",
 		"type": "building"
@@ -77,5 +83,5 @@ static func create_data(id: String) -> Resource:
 	# Load icon if specific path exists, otherwise default
 	if def.has("icon"):
 		# In a real project you might preload these or load securely
-		data.icon = load(def["icon"]) 
+		data.icon = load(def["icon"])
 	return data

@@ -23,13 +23,13 @@ func _ready():
 
 func _spawn_test_cards():
 	var test_ids = [
-		"villager", "berry_bush", "stone", "wood", "gold", 
+		"villager", "berry_bush", "stone", "wood", "gold",
 		"slime", "militia", "sword", "house", "garden"
 	]
 
 	var screen_size = get_viewport_rect().size
 	
-	for i in range(12): 
+	for i in range(12):
 		var id = test_ids.pick_random()
 		# Use the new Library to create data
 		var data = CardLibrary.create_data(id)
@@ -39,7 +39,14 @@ func _spawn_test_cards():
 		var rand_y = randf_range(100, screen_size.y - 100)
 		
 		spawn_card(id, Vector2(rand_x, rand_y), data)
-
+	var must_exist_ids = [
+		"villager", "berry_bush", "stone", "wood", "gold", "berry"
+	]
+	for id in must_exist_ids:
+		var data = CardLibrary.create_data(id)
+		var rand_x = randf_range(100, screen_size.x - 100)
+		var rand_y = randf_range(100, screen_size.y - 100)
+		spawn_card(id, Vector2(rand_x, rand_y), data)
 func spawn_card(card_id: String, pos: Vector2, data: Resource = null):
 	var new_card = card_scene.instantiate()
 	# In a real game, you'd look up the CardData resource by ID from a global dictionary
@@ -50,5 +57,9 @@ func spawn_card(card_id: String, pos: Vector2, data: Resource = null):
 	new_card.global_position = pos
 	cards_container.add_child(new_card)
 	print("Spawned card: ", card_id)
+func _on_card_production_complete(output_ids: Array, pos: Vector2):
+	for id in output_ids:
+		var ramdom_offset = Vector2(randf_range(-20, 20), randf_range(-20, 20))
+		spawn_card(id, pos + ramdom_offset)
 
 # You can add logic here to handle global inputs, camera movement, or turn processing
