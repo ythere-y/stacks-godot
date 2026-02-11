@@ -1,0 +1,7 @@
+id,zh,en
+card_berry,浆果,Berry
+card_villager,村民,Villager
+card_berry_bush,浆果丛,Berry Bush
+card_gold_coin,金币,Gold Coin
+card_stone,石头,Stone
+msg_pickup,你拾取了 {item},You picked up {item}

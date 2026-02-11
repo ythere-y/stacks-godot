@@ -1,0 +1,6 @@
+id,name_key,type,color_html,icon_path
+villager,card_villager,unit,#ebf5fb,res://assets/villager.png
+berry_bush,card_berry_bush,resource_source,#8df28d,res://assets/berry_bush.png
+berry,card_berry,food,#e64d80,res://assets/berry.png
+stone,card_stone,resource,#b3b3bf,res://assets/stone.png
+gold_coin,card_gold_coin,currency,#f2d159,res://assets/gold_coin.png

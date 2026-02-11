@@ -22,10 +22,15 @@ GameManager="*res://global/game_manager.gd"
 PhantomCameraManager="*uid://duq6jhf6unyis"
 Log="*uid://dgbct5kd0hhr6"
 Gamesettings="*uid://dbao2nmbc8oj8"
+LocalManager="*uid://wml72oi4ua7m"
 
 [editor_plugins]
 
-enabled=PackedStringArray()
+enabled=PackedStringArray("res://addons/logger/plugin.cfg", "res://addons/phantom_camera/plugin.cfg")
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://resources/localization.en.translation", "res://resources/localization.zh.translation")
 
 [physics]
 
