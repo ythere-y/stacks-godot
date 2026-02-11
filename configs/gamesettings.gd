@@ -1,3 +1,4 @@
+class_name GameSettings
 extends Node
 
 const STACK_OFFSET := 35.0

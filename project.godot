@@ -21,11 +21,11 @@ config/icon="res://icon.svg"
 GameManager="*res://global/game_manager.gd"
 PhantomCameraManager="*uid://duq6jhf6unyis"
 Log="*uid://dgbct5kd0hhr6"
-Gamesettings="*uid://bn7q43p31hpjj"
+Gamesettings="*uid://dbao2nmbc8oj8"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/gut/plugin.cfg", "res://addons/logger/plugin.cfg", "res://addons/phantom_camera/plugin.cfg")
+enabled=PackedStringArray()
 
 [physics]
 
