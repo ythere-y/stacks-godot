@@ -3,14 +3,30 @@ extends Node2D
 
 const CardDataRes = preload("uid://coxctgrbhcok5")
 
+#region Configuration
+@export_group("Scene References")
 @export var card_scene: PackedScene = preload("res://scenes/card/card.tscn") # 预加载卡牌场景以便实例化
 @export var stack_scene: PackedScene = preload("res://scenes/stack/stack.tscn") # 预加载堆叠场景以便实例化
-# var _hover_candidates: Array[Card] = [] # Removed in favor of polling
+
+@export_group("Camera Control")
+@export var camera_speed: float = 800.0
+@export var zoom_speed: float = 0.2
+@export var min_zoom: Vector2 = Vector2(0.5, 0.5)
+@export var max_zoom: Vector2 = Vector2(3.0, 3.0)
+
 var _current_focus: Node = null
 var is_dragging: bool = false
+var _target_zoom: Vector2 = Vector2(1, 1)
+
 # Container for all cards in play
 @onready var stacks_container = $StacksContainer
 
+# --- Camera Nodes (Auto-assigned from Scene) ---
+@onready var camera_target: Node2D = $CameraTarget
+@onready var phantom_camera: PhantomCamera2D = $PhantomCamera2D
+#endregion
+
+#region Lifecycle
 func _ready():
 	# 确保 CardLibrary 已经加载了 CSV
 	CardLibrary.load_library()
@@ -26,20 +42,17 @@ func _ready():
 		_spawn_all_types_and_random()
 	else:
 		push_error("Card scene is NOT assigned in GameBoard!")
-# -- 信号连接中心 --
-func _connect_signals():
-	# 连接生产完成信号
-	SignalBus.card_spawn_requested.connect(_on_card_production_complete)
+	
+	# 初始化 _target_zoom
+	if phantom_camera:
+		_target_zoom = phantom_camera.zoom
 
-	# 悬停管理信号 - Using _physics_process now
-	# SignalBus.card_hovered.connect(_on_card_hovered)
-	# SignalBus.card_unhovered.connect(_on_card_unhovered)
+	# 初始化相机位置到中心 (可选)
+	if camera_target:
+		camera_target.position = get_viewport_rect().size / 2
 
-	# 卡牌拖拽信号
-	SignalBus.card_drag_started.connect(_on_card_drag_started)
-	SignalBus.card_drag_ended.connect(_on_drag_ended)
-	SignalBus.card_sort_requested.connect(_on_card_sort_requested)
-# -- 悬停焦点仲裁逻辑 --
+func _process(delta: float):
+	_handle_camera_movement(delta)
 
 func _physics_process(_delta: float):
 	if is_dragging: return
@@ -61,40 +74,67 @@ func _physics_process(_delta: float):
 	
 	_update_hover_focus_list(candidates)
 
-func _update_hover_focus_list(candidates: Array[Card]):
-	var winner = _find_top_card(candidates)
+func _unhandled_input(event: InputEvent):
+	_handle_camera_zoom(event)
+#endregion
 
-	if _current_focus != winner:
-		# 让旧的焦点取消高亮
-		if is_instance_valid(_current_focus):
-			if _current_focus.has_method("set_highlight"):
-				_current_focus.set_highlight(false)
-			# 更新状态标志
-			if "is_top_hovered" in _current_focus:
-				_current_focus.is_top_hovered = false
+#region Camera Logic
+func _handle_camera_movement(delta: float):
+	if not camera_target: return
+	
+	# 获取 WASD 输入向量 (需确保 项目设置->输入映射 中配置了 ui_left/right/up/down 或自定义的一套)
+	# 也可以直接使用 physical keycode
+	var direction = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	
+	if direction != Vector2.ZERO:
+		camera_target.position += direction * camera_speed * delta
+
+func _handle_camera_zoom(event: InputEvent):
+	if not phantom_camera or not camera_target: return
+	
+	if event is InputEventMouseButton and event.pressed:
+		var old_zoom = _target_zoom
+		var new_zoom = old_zoom
 		
-		# 让新的焦点开启高亮
-		_current_focus = winner
-		if is_instance_valid(_current_focus):
-			if _current_focus.has_method("set_highlight"):
-				_current_focus.set_highlight(true)
-			# 更新状态标志
-			if "is_top_hovered" in _current_focus:
-				_current_focus.is_top_hovered = true
-func _find_top_card(list: Array[Card]) -> Node:
-	# 清理list中的无效实例
-	list = list.filter(func(c): return is_instance_valid(c))
-	if list.is_empty():
-		return null
+		# 2. 决定新的目标缩放值
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			new_zoom += Vector2(zoom_speed, zoom_speed)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			new_zoom -= Vector2(zoom_speed, zoom_speed)
+		else:
+			return
+			
+		new_zoom = new_zoom.clamp(min_zoom, max_zoom)
+		_target_zoom = new_zoom
+		
+		# 只有目标缩放发生变化时才执行位移计算
+		if new_zoom != old_zoom:
+			var mouse_pos = get_global_mouse_position()
+			var camera_pos = phantom_camera.global_position
+			
+			var zoom_ratio = old_zoom.x / new_zoom.x
+			var new_camera_pos = mouse_pos + (camera_pos - mouse_pos) * zoom_ratio
+			
+			var diff = new_camera_pos - camera_pos
+			camera_target.global_position += diff
+			phantom_camera.global_position += diff
+			phantom_camera.set_zoom(new_zoom)
+#endregion
 
-	var top_node: Card = list.reduce(func(best, current):
-		if current.get_layout_score() > best.get_layout_score():
-			return current
-		return best
-	)
-	return top_node
+#region Signal Handling
+func _connect_signals():
+	# 连接生产完成信号
+	SignalBus.card_spawn_requested.connect(_on_card_production_complete)
 
-## 拖拽信号处理
+	# 卡牌拖拽信号
+	SignalBus.card_drag_started.connect(_on_card_drag_started)
+	SignalBus.card_drag_ended.connect(_on_drag_ended)
+	SignalBus.card_sort_requested.connect(_on_card_sort_requested)
+
+func _on_card_production_complete(output_ids: Array, pos: Vector2):
+	for id in output_ids:
+		var random_offset = Vector2(randf_range(-20, 20), randf_range(-20, 20))
+		spawn_card(id, pos + random_offset)
 
 func _on_card_drag_started(target_card: Card, single: bool = false):
 	is_dragging = true
@@ -128,7 +168,45 @@ func _on_drag_ended(dragged_card: Node):
 	if dragged_card is Card:
 		var parent_stack = dragged_card.get_parent() as CardStack
 		parent_stack.end_drag()
-## 核心逻辑修改：保证全种类 + 随机生成
+#endregion
+
+#region Focus Logic
+func _update_hover_focus_list(candidates: Array[Card]):
+	var winner = _find_top_card(candidates)
+
+	if _current_focus != winner:
+		# 让旧的焦点取消高亮
+		if is_instance_valid(_current_focus):
+			if _current_focus.has_method("set_highlight"):
+				_current_focus.set_highlight(false)
+			# 更新状态标志
+			if "is_top_hovered" in _current_focus:
+				_current_focus.is_top_hovered = false
+		
+		# 让新的焦点开启高亮
+		_current_focus = winner
+		if is_instance_valid(_current_focus):
+			if _current_focus.has_method("set_highlight"):
+				_current_focus.set_highlight(true)
+			# 更新状态标志
+			if "is_top_hovered" in _current_focus:
+				_current_focus.is_top_hovered = true
+
+func _find_top_card(list: Array[Card]) -> Node:
+	# 清理list中的无效实例
+	list = list.filter(func(c): return is_instance_valid(c))
+	if list.is_empty():
+		return null
+
+	var top_node: Card = list.reduce(func(best, current):
+		if current.get_layout_score() > best.get_layout_score():
+			return current
+		return best
+	)
+	return top_node
+#endregion
+
+#region Spawning Logic
 func _spawn_all_types_and_random():
 	# 1. 获取库中所有的 ID
 	var all_ids = CardLibrary.get_all_card_ids()
@@ -152,7 +230,6 @@ func _spawn_all_types_and_random():
 		var pos = _get_random_screen_pos(screen_size)
 		spawn_card(id, pos, data)
 
-## 辅助函数：获取随机位置
 func _get_random_screen_pos(screen_size: Vector2) -> Vector2:
 	return Vector2(
 		randf_range(100, screen_size.x - 100),
@@ -168,9 +245,4 @@ func spawn_card(card_id: String, pos: Vector2, data: Resource = null):
 	new_stack.global_position = pos
 	stacks_container.add_child(new_stack)
 	print("Spawned stack with card: ", card_id)
-
-
-func _on_card_production_complete(output_ids: Array, pos: Vector2):
-	for id in output_ids:
-		var random_offset = Vector2(randf_range(-20, 20), randf_range(-20, 20))
-		spawn_card(id, pos + random_offset)
+#endregion
