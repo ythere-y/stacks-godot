@@ -4,9 +4,10 @@ extends Node
 signal card_spawn_requested(card_ids: Array, position: Vector2)
 
 # 也可以添加其他全局事件
-signal card_drag_started(card: Node)
-signal card_drag_ended(card: Node)
-
+# signal card_drag_started(card: Card, single: bool) # 参数必须对应，否则会报错
+signal card_drag_started(card: Card, single: bool)
+signal card_drag_ended(card: Card)
+signal card_sort_requested(card: Card)
 
 # res://core/signal_bus.gd
 signal card_hovered(card: Node)

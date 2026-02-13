@@ -6,8 +6,6 @@ extends Area2D
 # ------------------------------------------------------------------------------
 const HOVER_SCALE := Gamesettings.HOVER_SCALE
 
-signal drag_started(card: Card)
-signal drag_ended(card: Card)
 
 # ------------------------------------------------------------------------------
 # 节点引用与导出
@@ -27,11 +25,10 @@ signal drag_ended(card: Card)
 
 # ------------------------------------------------------------------------------
 # 状态变量
-# ------------------------------------------------------------------------------
-static var _hover_candidates: Array[Card] = []
-static var hovered_card: Card = null
+# -----------------------------------------------------------------------------
 
 var is_dragging: bool = false
+var is_top_hovered: bool = false # 只有被Board判定为最上层卡片时才允许拖拽
 var drag_offset: Vector2 = Vector2.ZERO
 var velocity: Vector2 = Vector2.ZERO
 var hover_target: Card = null # 拖拽时潜在的吸附目标
@@ -48,23 +45,19 @@ func _ready():
 	
 	# 基础交互信号
 	input_event.connect(_on_input_event)
-	mouse_entered.connect(_on_mouse_entered)
-	mouse_exited.connect(_on_mouse_exited)
+	# mouse_entered.connect(_on_mouse_entered)
+	# mouse_exited.connect(_on_mouse_exited)
 	layout.resized.connect(_on_ui_resized)
-
+	_update_visuals()
+	collision_layer = 1 << 0 # 确保卡牌在正确的碰撞层级
+	name = data.display_name if data else "Card"
 func setup(new_data: Resource):
 	data = new_data
-	if not is_node_ready():
-		await ready
-	_update_visuals()
 
-func _process(delta):
-	if is_dragging:
-		_process_dragging(delta)
-	else:
-		# 物理与跟随逻辑已委托给 StackComponent 或在此处保持极简
-		#stack_comp.process_physics(delta)
-		pass
+func get_layout_score() -> Array[int]:
+	var stack_score: Array[int] = get_parent().get_layout_score()
+	var self_score: Array[int] = [ self.z_index, self.get_index()]
+	return stack_score + self_score
 
 # ------------------------------------------------------------------------------
 # 表现层接口 (供组件调用)
@@ -73,6 +66,7 @@ func _update_visuals():
 	if not data: return
 	if label: label.text = tr(data.display_name)
 	if card_image: card_image.texture = data.icon
+	name = data.display_name if data.display_name else "Card"
 	
 	var style_box = card_visuals.get_theme_stylebox("panel").duplicate()
 	if style_box is StyleBoxFlat:
@@ -106,74 +100,45 @@ func _on_ui_resized():
 # ------------------------------------------------------------------------------
 func _on_input_event(_viewport, event, _shape_idx):
 	if event is InputEventMouseButton:
+		# 统一检查：只有最上层高亮卡片才能响应任何点击交互
+		if event.pressed and not is_top_hovered:
+			return
+
 		if event.button_index == MOUSE_BUTTON_LEFT:
-			if event.double_click and Card.hovered_card == self:
-				stack_comp.sort_stack()
-			elif event.pressed and Card.hovered_card == self:
-				start_drag(false)
+			if event.double_click and event.pressed:
+				SignalBus.card_sort_requested.emit(self )
+			elif event.pressed:
+				is_dragging = true # Set dragging state
+				SignalBus.card_drag_started.emit(self , false) # 明确传入 false
 		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			if Card.hovered_card == self:
-				start_drag(true)
+			is_dragging = true # Set dragging state
+			SignalBus.card_drag_started.emit(self , true)
 
 func _input(event):
 	if is_dragging and event is InputEventMouseButton and not event.pressed:
-		end_drag()
+		if event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_RIGHT:
+			is_dragging = false # Reset dragging state
+			SignalBus.card_drag_ended.emit(self )
 
-func start_drag(extract_single: bool):
-	is_dragging = true
-	drag_offset = get_global_mouse_position() - global_position
-	stack_comp.on_start_drag(extract_single)
-	drag_started.emit(self )
-
-func end_drag():
-	is_dragging = false
-	stack_comp.on_end_drag()
-	drag_ended.emit(self )
-
-func _process_dragging(delta):
-	var mouse_pos = get_global_mouse_position()
-	var target_pos = mouse_pos - drag_offset
-	velocity = (target_pos - global_position) / delta
-	global_position = target_pos
-	stack_comp.update_drop_target()
 
 # ------------------------------------------------------------------------------
 # 悬停逻辑 (静态处理)
 # ------------------------------------------------------------------------------
 func _on_mouse_entered():
-	print("Mouse entered card: ", data.display_name)
-	SignalBus.card_hovered.emit(self )
+	# Deprecated: Hover logic is now handled by polling in Board._physics_process
+	pass
 
 func _on_mouse_exited():
-	print("Mouse exited card: ", data.display_name)
-	SignalBus.card_unhovered.emit(self )
+	# Deprecated
+	pass
 
 func set_highlight(active: bool):
 	if highlight: highlight.visible = active
-
-static func _recalculate_global_hover():
-	var winner: Card = null
-	for c in _hover_candidates:
-		if winner == null or c.is_visually_above(winner):
-			winner = c
-	
-	if hovered_card != winner:
-		if hovered_card and is_instance_valid(hovered_card):
-			hovered_card._set_highlight(false)
-		hovered_card = winner
-		if hovered_card:
-			hovered_card._set_highlight(true)
 
 
 func is_visually_above(other: Card) -> bool:
 	if self.z_index != other.z_index: return self.z_index > other.z_index
 	return self.get_index() > other.get_index()
-
-func _set_hover_scale(active: bool):
-	if is_dragging: return
-	var target_scale = Vector2(HOVER_SCALE, HOVER_SCALE) if active else Vector2(1.0, 1.0)
-	var tween = create_tween()
-	tween.tween_property(self , "scale", target_scale, 0.1)
 
 # ------------------------------------------------------------------------------
 # 信号转发

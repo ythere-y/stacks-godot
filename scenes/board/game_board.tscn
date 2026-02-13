@@ -8,3 +8,5 @@ script = ExtResource("1_board_script")
 card_scene = ExtResource("2_card_scene")
 
 [node name="CardsContainer" type="Node2D" parent="." unique_id=1237147485]
+
+[node name="StacksContainer" type="Node2D" parent="." unique_id=1097597312]

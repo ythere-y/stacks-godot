@@ -1,0 +1,4 @@
+{
+    "files": ["scenes/card/card.gd","scenes/card/card.tscn","core/data_type/stack_data.gd","scenes/stack/stack.gd"],
+    "task": "我用的是godot，请你帮我完成这样的一个stack.gd文件。我已经有了card.gd,card.tscn,card_data.gd,stack_data.gd。"
+}

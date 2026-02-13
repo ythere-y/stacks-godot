@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://dky3ua214i7sb"]
+
+[ext_resource type="Script" uid="uid://bvyea637evh84" path="res://scenes/stack/stack.gd" id="1_ngt35"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gsprq"]
+
+[node name="Stack" type="Area2D" unique_id=1526574334]
+script = ExtResource("1_ngt35")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1366428785]
+shape = SubResource("RectangleShape2D_gsprq")

@@ -31,7 +31,7 @@ static func get_all_card_ids() -> Array:
 	if _definitions.is_empty():
 		load_library()
 	return _definitions.keys()
-static func create_data(id: String) -> Resource:
+static func create_data(id: String) -> CardData:
 	# 如果字典为空，尝试加载（或者在主流程中预先加载）
 	if _definitions.is_empty():
 		load_library()
