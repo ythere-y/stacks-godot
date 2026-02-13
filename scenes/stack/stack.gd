@@ -31,9 +31,38 @@ func _ready():
 	# 移除这里的 leader_card 初始化，改为统一在 _refresh_cards_from_data 或 setup 中处理，或者在需要使用时动态获取
 	# leader_card = cards[0] if not cards.is_empty() else null
 	update_stack_layout()
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if is_dragging:
 		_update_drag_targets()
+	else:
+		_process_separation(delta)
+
+func _process_separation(delta: float):
+	var separation_speed: float = 100.0 # 分离速度，可调整
+	var neighbors = get_overlapping_areas()
+	var push_vector = Vector2.ZERO
+	var count = 0
+	
+	for area in neighbors:
+		# 仅与其他 Stack 互斥
+		# area.is_dragging 的检查是为了防止：当你拖动一个 Stack 试图合并时，地上的 Stack 却因为碰撞检测逃跑了
+		if area is CardStack and area != self and not area.is_dragging:
+			var direction = global_position - area.global_position
+			var dist = direction.length()
+			
+			# 如果刚好重合，给一个随机方向散开
+			if dist < 1.0:
+				direction = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
+			else:
+				direction = direction.normalized()
+			
+			push_vector += direction
+			count += 1
+	
+	if count > 0:
+		# 这里的 lerp 并非必要，但若是想要惯性可以用 velocity 方式，这里直接位移模拟"挤开"
+		global_position += push_vector.normalized() * separation_speed * delta
+
 
 func _process(delta: float) -> void:
 	# 这里可以添加一些堆叠的动态效果，比如轻微的浮动或者根据卡牌数量调整外观
