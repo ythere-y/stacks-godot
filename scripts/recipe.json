@@ -1,0 +1,4 @@
+{
+    "files": ["scenes/card/card.gd"],
+    "task": "根据我目前的card.gd，从中解耦出recipe_manager.gd，配合一个简单的recipe.jsonwenj ,并且帮我设计对应的单元测试。返回给我修改的文件以及代码。"
+}

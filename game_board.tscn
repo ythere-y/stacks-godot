@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://dftq2shavaubn"]
+
+[ext_resource type="Script" path="res://board/board.gd" id="1_i37i2"]
+[ext_resource type="PackedScene" path="res://cards/card.tscn" id="2_17g6i"]
+
+[node name="GameBoard" type="Node2D" unique_id=861533875]
+script = ExtResource("1_i37i2")
+card_scene = ExtResource("2_17g6i")
+
+[node name="CardsContainer" type="Node2D" parent="." unique_id=1237147485]

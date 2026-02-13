@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Godot: 运行当前脚本 (Headless)",
+            "type": "godot",
+            "request": "launch",
+            "project": "${workspaceRoot}",
+            "additional_options": "--headless -s ${file}"
+            
+        },
+        {
+            "name": "Godot: 运行当前场景",
+            "type": "godot",
+            "request": "launch",
+            "project": "${workspaceRoot}",
+            "additional_options": "${file}"
+        }
+    ]
+}

@@ -6,13 +6,39 @@ from fire import Fire
 import json
 
 
-def generate_file_tree(startpath, relevant_files):
-    tree_str = "Project Structure:\n"
-    # 这里可以实现一个简单的递归遍历，或者直接列出文件路径
-    # 为了简化，这里直接列出相关文件的相对路径
-    for f in relevant_files:
-        tree_str += f"- {f}\n"
-    return tree_str
+def generate_file_tree(startpath):
+    lines = ["Project Structure:"]
+
+    startpath = os.path.abspath(startpath)
+    skip_names = {".git", ".vscode", ".godot", "addons", "scripts"}
+
+    def iter_entries(path):
+        entries = []
+        with os.scandir(path) as it:
+            for entry in it:
+                if entry.is_dir():
+                    if entry.name in skip_names:
+                        continue
+                    entries.append(entry)
+                elif entry.is_file() and entry.name.endswith((".tscn", ".gd", ".json")):
+                    entries.append(entry)
+
+        entries.sort(key=lambda e: (not e.is_dir(), e.name.lower()))
+        return entries
+
+    def walk(path, prefix):
+        entries = iter_entries(path)
+        for index, entry in enumerate(entries):
+            is_last = index == len(entries) - 1
+            branch = "└── " if is_last else "├── "
+            suffix = "/" if entry.is_dir() else ""
+            lines.append(f"{prefix}{branch}{entry.name}{suffix}")
+            if entry.is_dir():
+                next_prefix = prefix + ("    " if is_last else "│   ")
+                walk(entry.path, next_prefix)
+
+    walk(startpath, "")
+    return "\n".join(lines) + "\n"
 
 
 def format_prompt(file_paths, task_description=""):
@@ -25,7 +51,7 @@ def format_prompt(file_paths, task_description=""):
     )
 
     # 2. 添加文件树 (帮助模型理解引用关系)
-    prompt.append(generate_file_tree(".", file_paths))
+    prompt.append(generate_file_tree("."))
     prompt.append("\n---\n")
 
     # 3. 遍历文件并使用 XML 格式包裹

@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Stacks_Godot"
 config/tags=PackedStringArray("demo")
-run/main_scene="res://board/game_board.tscn"
+run/main_scene="uid://qsx21ogitxtk"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -23,6 +23,9 @@ PhantomCameraManager="*uid://duq6jhf6unyis"
 Log="*uid://dgbct5kd0hhr6"
 Gamesettings="*uid://dbao2nmbc8oj8"
 LocalManager="*uid://wml72oi4ua7m"
+RecipeMgr="*uid://x874np4xb6q5"
+SignalManager="*uid://c71il0xhky3v1"
+SignalBus="*uid://c71il0xhky3v1"
 
 [editor_plugins]
 
