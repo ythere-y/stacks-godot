@@ -1,12 +1,12 @@
 class_name RecipeManager
 extends Node
 
-var recipes: Dictionary = {}
+static var recipes: Dictionary = {}
 
 func _ready():
 	load_recipes()
 
-func load_recipes():
+static func load_recipes():
 	var file_path = "res://data/recipes.json"
 	if FileAccess.file_exists(file_path):
 		var file = FileAccess.open(file_path, FileAccess.READ)
@@ -19,7 +19,7 @@ func load_recipes():
 		push_error("RecipeManager: recipes.json not found!")
 
 ## 检查当前堆栈内容是否匹配任何配方
-func find_matching_recipe(stack_ids: Dictionary) -> Dictionary:
+static func find_matching_recipe(stack_ids: Dictionary) -> Dictionary:
 	for recipe_id in recipes:
 		var recipe = recipes[recipe_id]
 		var inputs = recipe.get("inputs", {})
@@ -31,9 +31,9 @@ func find_matching_recipe(stack_ids: Dictionary) -> Dictionary:
 			return result
 	return {}
 
-func _can_craft(stack_ids: Dictionary, required_inputs: Dictionary) -> bool:
+static func _can_craft(stack_ids: Dictionary, required_inputs: Dictionary) -> bool:
 	if required_inputs.is_empty(): return false
 	for id in required_inputs:
-		if stack_ids.get(id, 0) < required_inputs[id]:
+		if stack_ids.get(id, 0) < required_inputs[id]["num"]:
 			return false
 	return true

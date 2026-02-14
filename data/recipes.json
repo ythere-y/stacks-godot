@@ -1,13 +1,28 @@
 {
   "make_berry": {
     "name": "采摘浆果",
-    "inputs": { "villager": 1, "berry_bush": 1 },
+    "inputs": { "villager": {
+      "num":1,
+      "consume": 0
+    }, "berry_bush": {
+      "num":1,
+      "consume": 1
+    }},
     "outputs": ["berry"],
     "time": 3.0
   },
   "craft_house": {
     "name": "建造房屋",
-    "inputs": { "villager": 2, "wood": 3, "stone": 1 },
+    "inputs": { "villager": {
+      "num":2,
+      "consume": 0
+    }, "wood": {
+      "num":3,
+      "consume": 1
+    }, "stone": {
+      "num":1,
+      "consume": 1
+    }},
     "outputs": ["house"],
     "time": 10.0
   }

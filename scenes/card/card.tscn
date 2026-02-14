@@ -2,8 +2,6 @@
 
 [ext_resource type="Script" uid="uid://coxctgrbhcok5" path="res://scenes/card/card.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://d2s6f7g6l4v8b" path="res://icon.svg" id="2_icon"]
-[ext_resource type="Script" uid="uid://cjocy7s0io3jd" path="res://scenes/card/components/stack_components.gd" id="stack_component_script_id"]
-[ext_resource type="Script" uid="uid://dc1mb34by8vag" path="res://scenes/card/components/work_components.gd" id="work_component_script_id"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_card"]
 size = Vector2(140, 190)
@@ -104,9 +102,3 @@ offset_top = -120.0
 offset_bottom = -104.0
 mouse_filter = 2
 show_percentage = false
-
-[node name="StackComponent" type="Node" parent="." unique_id=1217168894]
-script = ExtResource("stack_component_script_id")
-
-[node name="WorkComponent" type="Node" parent="." unique_id=1999070254]
-script = ExtResource("work_component_script_id")

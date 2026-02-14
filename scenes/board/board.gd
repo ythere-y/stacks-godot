@@ -62,7 +62,7 @@ func _physics_process(_delta: float):
 	query.position = get_global_mouse_position()
 	query.collide_with_areas = true
 	query.collide_with_bodies = false
-	query.collision_mask = 1 # Gamesettings.CARD_COLLISION_LAYER
+	query.collision_mask = Gamesettings.CARD_COLLISION_LAYER
 	
 	var results = space_state.intersect_point(query, 32)
 	var candidates: Array[Card] = []
@@ -71,7 +71,7 @@ func _physics_process(_delta: float):
 		var c = res.collider
 		if c is Card:
 			candidates.append(c)
-	
+	Log.info("Cards under mouse: ", candidates.size())
 	_update_hover_focus_list(candidates)
 
 func _unhandled_input(event: InputEvent):
@@ -241,7 +241,8 @@ func spawn_card(card_id: String, pos: Vector2, data: Resource = null):
 	if data == null:
 		data = CardLibrary.create_data(card_id)
 	if data and new_stack.has_method("setup"):
-		new_stack.setup(data)
+		var init_cards: Array[CardData] = [data]
+		new_stack.setup(init_cards)
 	new_stack.global_position = pos
 	stacks_container.add_child(new_stack)
 	print("Spawned stack with card: ", card_id)

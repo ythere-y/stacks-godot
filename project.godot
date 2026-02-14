@@ -18,7 +18,6 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-GameManager="*res://global/game_manager.gd"
 PhantomCameraManager="*uid://duq6jhf6unyis"
 Log="*uid://dgbct5kd0hhr6"
 Gamesettings="*uid://dbao2nmbc8oj8"
