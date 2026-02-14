@@ -23,8 +23,9 @@ static func load_library():
 		_definitions[id] = {
 			"name_key": line[1],
 			"type": line[2],
-			"color": Color.html(line[3]), # 将十六进制字符串转为 Color 对象
-			"icon": line[4]
+			"max_durability": int(line[3]),
+			"color": Color.html(line[4]), # 将十六进制字符串转为 Color 对象
+			"icon": line[5]
 		}
 	file.close()
 static func get_all_card_ids() -> Array:
@@ -44,9 +45,8 @@ static func create_data(id: String) -> CardData:
 	var data = load("res://core/data_type/card_data.gd").new()
 	
 	data.id = id
-	# 这里存储 Key，显示时再用 tr()
 	data.display_name = def["name_key"]
 	data.background_color = def["color"]
 	data.icon = load(def["icon"])
-	
+	data.max_durability = def["max_durability"]
 	return data

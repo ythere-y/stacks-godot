@@ -71,7 +71,7 @@ func _physics_process(_delta: float):
 		var c = res.collider
 		if c is Card:
 			candidates.append(c)
-	Log.info("Cards under mouse: ", candidates.size())
+	# Log.info("Cards under mouse: ", candidates.size())
 	_update_hover_focus_list(candidates)
 
 func _unhandled_input(event: InputEvent):

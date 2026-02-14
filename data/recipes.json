@@ -9,7 +9,7 @@
       "consume": 1
     }},
     "outputs": ["berry"],
-    "time": 3.0
+    "time": 1.0
   },
   "craft_house": {
     "name": "建造房屋",

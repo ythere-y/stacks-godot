@@ -12,9 +12,9 @@ const HOVER_SCALE := Gamesettings.HOVER_SCALE
 # ------------------------------------------------------------------------------
 # 节点引用与导出
 # ------------------------------------------------------------------------------
-@export var data: Resource
+@export var data: CardData = null
 
-
+@onready var current_durability: int = data.max_durability if data else 1
 @onready var layout: VBoxContainer = $Layout
 @onready var progress_bar: ProgressBar = $ProgressBar
 @onready var card_visuals: PanelContainer = $Layout/CardVisuals
@@ -33,13 +33,18 @@ var drag_offset: Vector2 = Vector2.ZERO
 var velocity: Vector2 = Vector2.ZERO
 var hover_target: Card = null # 拖拽时潜在的吸附目标
 
+# ------------------------------------------------------------------------------
+# 发射信号
+# ------------------------------------------------------------------------------
+signal request_destruction(card_node: Card)
+
 #endregion
 
 #region Lifecycle
 # ------------------------------------------------------------------------------
 # 生命周期
 # ------------------------------------------------------------------------------
-func setup(new_data: Resource):
+func setup(new_data: CardData):
 	data = new_data
 func _ready():
 	_on_ui_resized()
@@ -51,6 +56,7 @@ func _ready():
 	_update_visuals()
 	collision_layer = 1 << 0 # 确保卡牌在正确的碰撞层级
 	name = data.display_name if data else "Card"
+	# Log.info("Card '{0}' is ready with durability {1}.".format([name, str(current_durability)]))
 
 
 #endregion
@@ -128,4 +134,18 @@ func get_layout_score() -> Array[int]:
 
 func set_highlight(active: bool):
 	if highlight: highlight.visible = active
+func play_damage_effect():
+	# 这里可以添加一些受伤动画或效果
+	pass
+func die_me():
+	# 发出销毁请求信号，交由 Board 或 Stack 处理实际销毁逻辑
+	request_destruction.emit(self )
+func take_damage(amount: int):
+	current_durability -= amount
+	var damage_info: String = String("Card '") + name + "' takes " + str(amount) + " damage. Remaining durability: " + str(current_durability)
+	Log.info(damage_info)
+	play_damage_effect()
+	if current_durability <= 0:
+		die_me()
+	
 #endregion

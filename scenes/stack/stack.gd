@@ -73,6 +73,8 @@ func add_cards(card_list: Array[Card]):
 		if not is_instance_valid(card): continue
 		if card not in cards:
 			cards.append(card)
+		if not card.request_destruction.is_connected(_on_card_request_destruction):
+			card.request_destruction.connect(_on_card_request_destruction)
 		if card.get_parent() != self:
 			if card.get_parent():
 				card.reparent(self )
@@ -81,9 +83,17 @@ func add_cards(card_list: Array[Card]):
 	
 	layout_component.update_layout()
 	stack_changed.emit()
-
+func _on_card_request_destruction(card_node: Card):
+	Log.info("CardStack: Card{0} requested destruction.".format(card_node.name))
+	remove_cards([card_node])
+	card_node.queue_free()
 func remove_cards(card_list: Array[Card]):
 	for card in card_list:
+		if not is_instance_valid(card): continue
+
+		if card.request_destruction.is_connected(_on_card_request_destruction):
+			card.request_destruction.disconnect(_on_card_request_destruction)
+		
 		cards.erase(card)
 	
 	layout_component.update_layout()
@@ -198,10 +208,11 @@ func sort_from_card(target_card: Card):
 	stack_changed.emit()
 
 func _refresh_cards_from_data():
+	var new_cards: Array[Card] = []
 	for card_data in init_cards:
 		var card: Card = card_scene.instantiate()
 		card.setup(card_data)
-		add_child(card)
-		cards.append(card)
+		new_cards.append(card)
+	add_cards(new_cards)
 
 #endregion

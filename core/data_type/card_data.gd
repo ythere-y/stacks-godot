@@ -10,3 +10,4 @@ enum CardType {RESOURCE, UNIT, BUILDING, FOOD, MOB, EQUIPMENT, OTHER}
 @export var max_health: int = 0
 @export var can_stack: bool = true
 @export var stack_limit: int = 99
+@export var max_durability: int = 1
