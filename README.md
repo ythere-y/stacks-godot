@@ -8,22 +8,22 @@ To provide a high-quality, bug-free implementation of complex card interactions 
 
 ## 📂 Project Structure
 
-- **`cards/`**: Core card logic.
-  - `card.gd`: The script handling drag-and-drop, stacking, and interaction.
-  - `card_data.gd`: A custom Resource Definition for creating different card types (Villagers, Berry Bushes, etc.).
-- **`board/`**: The game board.
-  - `board.gd`: Manages the main game loop and spawning cards.
-- **`global/`**: Autoloads.
-  - `game_manager.gd`: Handles global state like Days, Gold, etc.
-- **`ui/`**: User interface elements (HUD, Menus).
-- **`assets/`**: Place your sprites, fonts, and sounds here.
+- **`addons/`**: Custom editor plugins (if needed).
+- **`assets/`**: Sprites, fonts, sounds.
+- **`configs/`**: Gamesettings here
+- **`core/`**: Core systems and utilities.
+  - **`data_type/`**: Custom Resource definitions (e.g., `CardData`, `RecipeData`).
+- **`data/`**: JSON or CSV files for card definitions, recipes, etc.
+- **`resources/`**: translations.
+- **`scenes/`**: Scenes.
+  - **`board/`**: The main game board.
+  - **`card/`**: Card scenes and scripts.
+  - **`stack/`**: Card stack scene and script.
+    - **`components/`**: Modular components for layout, dragging, etc. 
+  - **`ui/`**: User interface elements (HUD, Menus).
 
+- **`scripts/`**: python scripts for better prompting AI.
 
-## 🛠 Next Steps (Implementation Ideas)
-
-- **Stacking Logic (`card.gd`)**: Currently, it detects overlap. You need to implement the "Timer" logic. When a specific combination stacks (e.g., Villager + Berry Bush), start a timer on the top card.
-- **Recipes**: Create a `RecipeData` resource that defines Inputs (Villager + Berry Bush) -> Outputs (Berry + Villager).
-- **Grid/Chaos**: Decide if you want cards to snap to a grid or be free-floating (current implementation is free-floating).
 
 ---
 
@@ -32,64 +32,56 @@ To provide a high-quality, bug-free implementation of complex card interactions 
 This document tracks implemented features and planned improvements for the *Stacklands*-inspired card game loop.
 
 ### ✅ Completed Features
-- [x] **Core Architecture**
-  - [x] Linked List Data Structure (`card_below` / `card_above`) for handling stacks.
-  - [x] Resource-based Card Definitions (`CardLibrary`).
-  - [x] Recursive scene tree reordering (ensures Z-Index and Input priority match visuals).
-- [x] **Interaction**
-  - [x] **Smart Drag & Drop**: recursive "Snake" trail effect for child cards.
-  - [x] **Robust Hover**: Global `hover_candidates` list to solve Z-fighting/overlap selection issues.
-  - [x] **Sorting**: Double-click a stack to auto-sort by Card ID.
-  - [x] **Splitting**: Right-click drag to extract a single card from the middle of a stack.
-- [x] **Visuals & Polish**
-  - [x] **Poker Style Design**: Rectangular cards with Title Bar, Icon, and Label.
-  - [x] **UI Styling**: `StyleBoxFlat` with rounded corners (12px) and drop shadows.
-  - [x] **Physics Inertia**: Cards have momentum and friction when thrown/released.
-  - [x] **Screen Bounds**: Simple containment with bounce effect to keep cards on screen.
 
+- [x] **Core Architecture**
+  - [x] Resource-based Card Definitions (`CardLibrary`).
+  - [x] Build framework for `Board`, `Stack`, and `Card` three level hierarchy.
+  - [x] **Modular Components**: Use four components in stack for better and flexible arrangement.
+  - [x] **Event System**: Custom signals for card/stack events (e.g., `stack_changed`, `card_dragged`).
+  - [ ] **Global Game time**
+  - [ ] **Daily Cycle**
+  - [ ] **Auto Feed and Starve System**: Cards that aren't fed by the end of the day will die.
+- [ ] **Basic Card**
+  - [x] **Card highlight**: Cards visually highlight when hovered.
+  - [x] **Card die**: Cards can die
+  - [ ] **Animations**:
+    - [ ] **Die**
+    - [ ] **Take damage**
+- [ ] **Basic Stack**
+  - [x] **Stack Highlight**: Stacks highlight when a card is dragged over them.
+  - [x] **Stack Collision**
+  - [x] **Stack Sorting**
+- [ ] **Production Logic**
+  - [x] **Basic production**: Timer-based production when valid card combinations are stacked.
+  - [ ] **producted card auto-snap**: Produced cards should automatically snap to the closest same-type stack or create a new stack if none nearby.
+  - [ ] **Spawn Animations**: Cards should "pop" out of booster packs or production outputs with a juicy scale/bounce animation.
+  - [ ] **Recipe System**: Data-driven recipes for valid card combinations and their outputs.
+- [x] **Interaction**
+  - [ ] **Hover**
+    - [x] **Robust Hover**: Use physics processing to detect hover.
+    - [ ] **Showing-Details-on-Hover**: Show card details in a tooltip or side panel when hovering.
+  - [ ] **Drag & Drop**
+    - [x] **Splitting**: Right-click drag to extract a single card from the middle of a stack.
+    - [x] Left click to drag a stack, and right click to drag a single card from the stack.
+    - [ ] Smart recursive "Snake" trail effect for child cards.
+    - [ ] **Dynamic Tilt**: Cards tilt slightly based on drag direction for a more physical feel.
+  - [x] **Sorting**: Double-click a stack to auto-sort by Card ID.
+  - [ ] **Physics**:
+    - [x] **Soft Collision**: Based on Stack components.
+    - [ ] **Inertia & Friction**: Cards have momentum when thrown and slow down over time. 
+- [x] **Visuals & Polish**
+  - [ ] **Poker Style Design**: Rectangular cards with Title Bar, Icon, and Label.
+  - [ ] **UI Styling**: `StyleBoxFlat` with rounded corners (12px) and drop shadows.
+  - [ ] **Physics Inertia**: Cards have momentum and friction when thrown/released.
+  - [ ] **Screen Bounds**: Simple containment with bounce effect to keep cards on screen.
+  - [ ] **Snap-to-Grid**: Cards snap to a 50px grid when dropped on the board.
+- [ ] **Camera**
+  - [x] **Basic Camera**: Based on phantom camera node.
+  - [x] **Zoom**
+  - [ ] **Panning**: Click and drag on empty space to pan the camera around the board.
+  - [ ] **Move by keyboard**: WASD or arrow keys to nudge the camera.
+  
 ### 🚀 Planned Features (Future Ideas)
 
-#### 1. Physics & Board Feel (Juiciness)
-> *Refining how the cards feel to move and interact.*
-
-- [ ] **Soft Collision / Separation (互斥力场)**
-  - **Goal**: Prevent non-stacked cards from overlapping messily on top of each other.
-  - **Implementation**: Add a small repulsion force (Steering Behavior) between cards that are *not* connected in a stack. If you drop a card near another, they should gently slide apart to sit side-by-side.
-
-- [ ] **Dynamic Tilt (拖拽倾斜)**
-  - **Goal**: Make cards feel like physical objects with air resistance.
-  - **Implementation**: Rotate the card container slightly based on `velocity.x` during dragging. (e.g., dragging left tilts the card right).
-
-- [ ] **Snap-to-Grid (网格吸附)**
-  - **Goal**: Allow for tidy board organization.
-  - **Implementation**: When dropping a card on valid "Ground" (not on another stack), snap its final `target_position` to the nearest 50px or 100px grid point.
-
-#### 2. Camera & Board Management
-> *Expanding the play area.*
-
-- [ ] **Infinite Canvas (Camera2D)**
-  - **Goal**: The game currently relies on window size. Real gameplay needs a larger space.
-  - **Implementation**: Add a `Camera2D` node.
-	- **Pan**: Middle Mouse Button to move camera.
-	- **Zoom**: Mouse Wheel to zoom in/out.
-	- **Bounds**: Draw a simple background grid that extends infinitely in all directions.
-  	- draw a rectangle boundary (e.g., 2000x2000) to indicate the "playable area".
-  	- Cards can be moved anywhere within this area, but not outside of it.
-
-#### 3. Gameplay Mechanics (The "Game" Part)
-- [ ] **Production Logic (Timer System)**
-  - **Goal**: The core mechanic of Stacklands.
-  - **Implementation**: If valid Combo (e.g. `Villager` on `Berry Bush`), start a generic Timer on the `Villager`. When finished, spawn `Berry` card nearby.
-	- Use a `RecipeData` resource to define valid combinations and their outputs.
-	- Add `Villager` `Berry Bush` `Berry` card definitions to `CardLibrary`.
-	- Add a state machine or status system to cards to track "Idle", "Producing", "Ready" states.
-
-- [ ] **Consumption / Feeding**
-  - **Goal**: Survival pressure.
-  - **Implementation**: End-of-day timer that requires consuming Food cards.
-
-- [ ] **Card Spawning Animations**
-  - **Goal**: Visual feedback for rewards.
-  - **Implementation**: Cards should "pop" out of booster packs or production outputs with a juicy scale/bounce animation.
 
 ---
