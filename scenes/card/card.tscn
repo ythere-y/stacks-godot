@@ -19,6 +19,7 @@ shadow_offset = Vector2(4, 4)
 
 [node name="Card" type="Area2D" unique_id=1458303406]
 script = ExtResource("1_script")
+display_name = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=498638119]
 shape = SubResource("RectangleShape2D_card")
@@ -29,7 +30,7 @@ points = PackedVector2Array(-70, -95, 70, -95, 70, 95, -70, 95, -70, -95)
 width = 2.0
 default_color = Color(1, 0.8, 0.2, 0.9)
 
-[node name="Layout" type="VBoxContainer" parent="." unique_id=1483714607]
+[node name="Layout" type="MarginContainer" parent="." unique_id=80114372]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -42,8 +43,6 @@ offset_bottom = 95.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
-alignment = 1
 
 [node name="CardVisuals" type="PanelContainer" parent="Layout" unique_id=1970494196]
 layout_mode = 2
@@ -72,7 +71,7 @@ vertical_alignment = 1
 text_overrun_behavior = 3
 
 [node name="Divider" type="ColorRect" parent="Layout/CardVisuals/MarginContainer/Content" unique_id=551635934]
-custom_minimum_size = Vector2(0, 2)
+custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
 color = Color(0, 0, 0, 1)
 
@@ -93,6 +92,11 @@ grow_vertical = 2
 texture = ExtResource("2_icon")
 expand_mode = 1
 stretch_mode = 6
+
+[node name="FlashOverlay" type="ColorRect" parent="Layout" unique_id=1788765541]
+layout_mode = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
 
 [node name="ProgressBar" type="ProgressBar" parent="." unique_id=476122024]
 visible = false

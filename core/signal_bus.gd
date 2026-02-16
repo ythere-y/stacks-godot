@@ -15,6 +15,5 @@ signal card_drag_started(card: Card, single: bool)
 signal card_drag_ended(card: Card)
 signal card_sort_requested(card: Card)
 
-# res://core/signal_bus.gd
-signal card_hovered(card: Node)
-signal card_unhovered(card: Node)
+
+signal battle_started(stack: CardStack)

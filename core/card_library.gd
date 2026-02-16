@@ -21,6 +21,7 @@ const TYPE_MAP = {
 	"resource": "res://core/data_type/card_templates/card_resource_data.gd",
 	"villager": "res://core/data_type/card_templates/card_unit_data.gd",
 	"mob": "res://core/data_type/card_templates/card_unit_data.gd",
+	"currency": "res://core/data_type/card_templates/card_base_data.gd",
 }
 
 

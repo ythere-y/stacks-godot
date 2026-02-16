@@ -12,6 +12,7 @@
         "def_lvl": 2,
         "spd_lvl": 2,
         "hit_chance_lvl": 3,
+        "team": "player",
         "skills": [
             {
                 "id": "gather",

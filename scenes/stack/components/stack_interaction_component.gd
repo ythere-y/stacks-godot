@@ -1,8 +1,9 @@
 class_name StackInteractionComponent
 extends Node
 
-var stack # 移除 : CardStack 以避免循环引用
-var current_drop_target = null # 移除 : CardStack
+var stack
+var current_drop_target = null
+var is_dragging: bool = false
 
 func _init(parent_stack = null):
 	if parent_stack:
@@ -32,9 +33,20 @@ func update_drag_targets():
 			candidates.append(s)
 	
 	_update_drop_candidate(candidates)
-
+	
+func _valid_stack_for_drag(target_stack: CardStack) -> bool:
+	if not is_instance_valid(target_stack):
+		return false
+	
+	if target_stack == stack:
+		return false
+	
+	if target_stack.battle_component.is_battling:
+		if not self.stack.cards[0].data is UnitCardData:
+			return false
+	return true
 func _update_drop_candidate(candidates: Array[CardStack]):
-	candidates = candidates.filter(func(s): return is_instance_valid(s))
+	candidates = candidates.filter(_valid_stack_for_drag)
 	
 	var new_target: CardStack = null
 	if candidates.is_empty():

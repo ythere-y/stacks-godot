@@ -16,16 +16,16 @@ var layout_component: StackLayoutComponent
 var movement_component: StackMovementComponent
 var interaction_component: StackInteractionComponent
 var work_component: StackWorkComponent
+var battle_component: StackBattleComponent
 
 # 状态
-var is_dragging: bool = false
 var cards: Array[Card] = []
 var drag_offset: Vector2 = Vector2.ZERO
-var init_cards: Array[BaseCardData] = []
+var init_cards: Array = []
 #endregion
 
 #region Lifecycle
-func setup(card_list: Array[BaseCardData]):
+func setup(card_list: Array):
 	init_cards = card_list
 	
 func _ready():
@@ -33,13 +33,14 @@ func _ready():
 	layout_component = StackLayoutComponent.new(self )
 	movement_component = StackMovementComponent.new(self )
 	interaction_component = StackInteractionComponent.new(self )
-	# 将 wrok_component 设为子节点，以便它能接收 _process 处理时间
 	work_component = StackWorkComponent.new(self )
+	battle_component = StackBattleComponent.new(self )
 	
 	add_child(layout_component)
 	add_child(movement_component)
 	add_child(interaction_component)
 	add_child(work_component)
+	add_child(battle_component)
 	
 	area_entered.connect(_on_area_entered)
 	_init_cards_from_data()
@@ -52,7 +53,7 @@ func _ready():
 
 func _physics_process(delta: float) -> void:
 	# 委托给组件
-	if is_dragging:
+	if interaction_component.is_dragging:
 		interaction_component.update_drag_targets()
 		_process_dragging(delta)
 	else:
@@ -73,8 +74,7 @@ func add_cards(card_list: Array[Card]):
 		if not is_instance_valid(card): continue
 		if card not in cards:
 			cards.append(card)
-		if not card.request_destruction.is_connected(_on_card_request_destruction):
-			card.request_destruction.connect(_on_card_request_destruction)
+		card.signal_connect(self )
 		if card.get_parent() != self:
 			if card.get_parent():
 				card.reparent(self )
@@ -83,6 +83,12 @@ func add_cards(card_list: Array[Card]):
 	
 	layout_component.update_layout()
 	stack_changed.emit()
+func _on_card_smoke_effect(card_cmp: Card, position: Vector2):
+	# 在card的层级的下面位置生成一个烟雾特效
+	# 烟雾特效使用move child方式移动到目标card的层级下面
+	pass
+
+
 func _on_card_request_destruction(card_node: Card):
 	Log.info("CardStack: Card{0} requested destruction.".format(card_node.name))
 	remove_cards([card_node])
@@ -101,7 +107,16 @@ func remove_cards(card_list: Array[Card]):
 	
 	if cards.is_empty():
 		queue_free()
-
+func split_unbattle_cards() -> CardStack:
+	var unbattle_cards: Array[Card] = []
+	for card in cards:
+		if not card.data or not (card.data is UnitCardData):
+			unbattle_cards.append(card)
+	
+	if unbattle_cards.is_empty():
+		return null
+	
+	return split_stack(unbattle_cards)
 func split_stack(card_list: Array[Card]) -> CardStack:
 	if card_list.is_empty(): return null
 
@@ -143,6 +158,9 @@ func start_drag_from_card(target_card: Card, single: bool = false):
 	var index = cards.find(target_card)
 	if index == -1: return
 	
+	if battle_component.is_battling:
+		single = true # 战斗中强制单卡拖动
+
 	var cards_to_drag: Array[Card] = []
 	if single:
 		cards_to_drag.append(target_card)
@@ -151,11 +169,11 @@ func start_drag_from_card(target_card: Card, single: bool = false):
 	return self.split_stack(cards_to_drag)
 
 func start_drag():
-	is_dragging = true
+	interaction_component.is_dragging = true
 	layout_component.set_drag_layout()
 
 func end_drag():
-	is_dragging = false
+	interaction_component.is_dragging = false
 	layout_component.reset_layout()
 	var target_stack: CardStack = null
 	
@@ -190,7 +208,7 @@ func get_layout_score() -> Array[int]:
 	return [ self.z_index, get_index()]
 
 func sort_from_card(target_card: Card):
-	if is_dragging: return
+	if interaction_component.is_dragging: return
 	var index = cards.find(target_card)
 	if index == -1: return
 	var sort_slice = cards.slice(index, cards.size())

@@ -17,23 +17,28 @@ func _ready():
 ## 重新排列所有卡牌的位置并更新碰撞盒
 func update_layout():
 	if not stack or stack.cards.is_empty():
+		_hide_battle_bg()
 		return
 	
+	if stack.battle_component.is_battling:
+		_update_battle_layout()
+	else:
+		_hide_battle_bg()
+		_update_normal_layout()
+
+func _update_normal_layout():
 	# 1. 物理对齐与顺序同步
 	for i in range(stack.cards.size()):
 		var card = stack.cards[i]
-		# 确保卡牌是当前Stack的子节点（由于拖拽逻辑可能导致短暂的父子关系滞后，加个校验）
 		if card.get_parent() != stack:
 			continue
 			
 		var target_pos = Vector2(0, i * VERTICAL_OFFSET)
 		card.position = target_pos
-		
-		# 同步 Z-Index，确保数组后面的卡片渲染在上面
 		card.z_index = i + BASE_Z_INDEX
 		
 		# 同步场景树子节点顺序
-		if card.get_index() != i + 1: # 0是CollisionShape/Components, 卡片从1开始? 或者直接 move_to_back
+		if card.get_index() != i + 1:
 			stack.move_child(card, i + stack.get_children().size() - stack.cards.size())
 
 	# 2. 动态调整 Stack 的碰撞盒大小
@@ -44,13 +49,74 @@ func update_layout():
 		var card_size = first_card.layout.size
 		var total_height = card_size.y + (stack.cards.size() - 1) * VERTICAL_OFFSET
 		
-		# 确保资源唯一
 		if stack.collision_shape.shape.resource_local_to_scene == false:
 			stack.collision_shape.shape = stack.collision_shape.shape.duplicate()
 			
 		stack.collision_shape.shape.size = Vector2(card_size.x, total_height)
-		# 碰撞盒中心点需要向下偏移
 		stack.collision_shape.position = Vector2(0, (stack.cards.size() - 1) * VERTICAL_OFFSET / 2.0)
+
+func _update_battle_layout():
+	var allies = []
+	var enemies = []
+	for card in stack.cards:
+		if card.data is UnitCardData:
+			if card.data.team == UnitCardData.Team.ENEMY:
+				enemies.append(card)
+			elif card.data.team == UnitCardData.Team.PLAYER:
+				allies.append(card)
+			elif card.data.team == UnitCardData.Team.NEUTRAL:
+				#TODO: 中立单位的处理逻辑，当前暂时视为玩家阵营
+				enemies.append(card)
+	var card_size = stack.cards[0].layout.size
+	var h_gap = 20.0
+	var v_gap = 50.0
+	
+	# 计算敌方(上方)布局
+	var enemy_total_w = enemies.size() * card_size.x + (enemies.size() - 1) * h_gap
+	var enemy_start_x = - enemy_total_w / 2.0 + card_size.x / 2.0
+	for i in range(enemies.size()):
+		enemies[i].position = Vector2(enemy_start_x + i * (card_size.x + h_gap), -card_size.y / 2.0 - v_gap / 2.0)
+		enemies[i].z_index = BASE_Z_INDEX + i
+	
+	# 计算我方(下方)布局
+	var ally_total_w = allies.size() * card_size.x + (allies.size() - 1) * h_gap
+	var ally_start_x = - ally_total_w / 2.0 + card_size.x / 2.0
+	for i in range(allies.size()):
+		allies[i].position = Vector2(ally_start_x + i * (card_size.x + h_gap), card_size.y / 2.0 + v_gap / 2.0)
+		allies[i].z_index = BASE_Z_INDEX + i
+		
+	# 更新战斗背景框与碰撞盒
+	var box_w = max(enemy_total_w, ally_total_w) + 40.0
+	var box_h = card_size.y * 2 + v_gap + 40.0
+	_show_battle_bg(Vector2(box_w, box_h))
+	
+	if stack.collision_shape and stack.collision_shape.shape is RectangleShape2D:
+		stack.collision_shape.shape.size = Vector2(box_w, box_h)
+		stack.collision_shape.position = Vector2.ZERO
+
+var battle_bg: Panel = null
+func _show_battle_bg(size: Vector2):
+	if not battle_bg:
+		battle_bg = Panel.new()
+		# 简单的战斗框样式
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0.2, 0, 0, 0.4) # 暗红色透明背景
+		style.border_width_left = 4
+		style.border_width_top = 4
+		style.border_width_right = 4
+		style.border_width_bottom = 4
+		style.border_color = Color(0.8, 0.2, 0.2, 0.8)
+		battle_bg.add_theme_stylebox_override("panel", style)
+		stack.add_child(battle_bg)
+		stack.move_child(battle_bg, 0) # 放在最底层
+		
+	battle_bg.visible = true
+	battle_bg.size = size
+	battle_bg.position = - size / 2.0
+
+func _hide_battle_bg():
+	if battle_bg:
+		battle_bg.visible = false
 
 
 func set_drag_layout():

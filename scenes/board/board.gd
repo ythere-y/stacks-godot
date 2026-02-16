@@ -52,7 +52,12 @@ func _spawn_all_types_and_random():
 		var data = CardLibrary.create_data(id)
 		var pos = _get_random_screen_pos(screen_size)
 		spawn_card(id, pos, data)
-
+	# 4. 多生成5个村民和5个兔子
+	for i in range(5):
+		var villager_data = CardLibrary.create_data("villager")
+		var rabbit_data = CardLibrary.create_data("rabbit")
+		spawn_card("villager", _get_random_screen_pos(screen_size), villager_data)
+		spawn_card("rabbit", _get_random_screen_pos(screen_size), rabbit_data)
 
 func _spawn_battle_cards():
 	var villager_card = CardLibrary.create_data("villager")
@@ -167,6 +172,22 @@ func _connect_signals():
 	SignalBus.card_drag_started.connect(_on_card_drag_started)
 	SignalBus.card_drag_ended.connect(_on_drag_ended)
 	SignalBus.card_sort_requested.connect(_on_card_sort_requested)
+
+	SignalBus.battle_started.connect(_on_battle_started)
+
+func _on_battle_started(stack: CardStack):
+	print("Battle started in stack: ", stack.name)
+	# TODO:这里可以添加一些全局的战斗开始逻辑，比如播放音乐、特效等
+	
+	# 清理非战斗卡牌，将非战斗卡牌抽离为一个新的stack
+	var new_stack = stack.split_unbattle_cards()
+	if new_stack:
+		new_stack.name = stack.name + "_Unbattle"
+		new_stack.global_position = stack.global_position + Vector2(50, 50) # 稍微偏移一下位置
+		stacks_container.add_child(new_stack)
+		print("Split unbattle cards into new stack: ", new_stack.name)
+		# TODO:这里可以添加一些过渡动画，比如新stack从原stack飞出来，或者淡入等
+
 
 func _on_card_production_complete(output_ids: Array, pos: Vector2):
 	for id in output_ids:

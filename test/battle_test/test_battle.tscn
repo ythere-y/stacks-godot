@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://dxhiedibm0hr8"]
+
+[ext_resource type="Script" uid="uid://cfbv4nwas2pke" path="res://test/battle_test/test_battle.gd" id="1_52phx"]
+
+[node name="BattleTest" type="Node2D" unique_id=1063737076]
+script = ExtResource("1_52phx")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1475318542]
+offset_right = 1130.0
+offset_bottom = 628.0
+color = Color(0.8792148, 0.7090577, 0.8792148, 0.13333334)
+
+[node name="BattleZone" type="Node2D" parent="." unique_id=1898321191]
+
+[node name="DebugCanvas" type="CanvasLayer" parent="." unique_id=2083584749]
+
+[node name="ColorRect" type="ColorRect" parent="DebugCanvas" unique_id=1337218351]
+offset_right = 184.0
+offset_bottom = 551.0
+color = Color(0.09803922, 0.16470589, 0.29803923, 0.76862746)
+
+[node name="ControlPanel" type="VBoxContainer" parent="DebugCanvas" unique_id=1504991856]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Title" type="Label" parent="DebugCanvas/ControlPanel" unique_id=69148660]
+layout_mode = 2
+text = "Animation Test Panel"
+
+[node name="BtnAttack" type="Button" parent="DebugCanvas/ControlPanel" unique_id=1325363631]
+layout_mode = 2
+text = "Attack"
+
+[node name="BtnContinue" type="Button" parent="DebugCanvas/ControlPanel" unique_id=1269430115]
+layout_mode = 2
+text = "Continue"
+
+[node name="BtnBeHit" type="Button" parent="DebugCanvas/ControlPanel" unique_id=1364349776]
+layout_mode = 2
+text = "BeHit"
+
+[node name="BtnDeath" type="Button" parent="DebugCanvas/ControlPanel" unique_id=783427319]
+layout_mode = 2
+text = "Death"
+
+[node name="HBox" type="VBoxContainer" parent="DebugCanvas/ControlPanel" unique_id=3445089]
+layout_mode = 2
+
+[node name="ValueDisplay" type="Label" parent="DebugCanvas/ControlPanel/HBox" unique_id=514385688]
+layout_mode = 2
+text = "AnimSpeedSlider"
+
+[node name="AnimSpeedSlider" type="HSlider" parent="DebugCanvas/ControlPanel/HBox" unique_id=1533878872]
+layout_mode = 2
+min_value = 0.1
+max_value = 3.0
+step = 0.1
+value = 0.1
+
+[node name="BtnReset" type="Button" parent="DebugCanvas/ControlPanel" unique_id=1690931228]
+layout_mode = 2
+text = "Reset"

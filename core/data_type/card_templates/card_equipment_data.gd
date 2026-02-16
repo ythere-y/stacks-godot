@@ -6,7 +6,7 @@ extends BaseCardData
 @export var defense_bonus: int = 0
 @export var attack_speed_bonus: float = 0.0
 @export var hit_chance_bonus: float = 0.0
-@export var skills: Array[Dictionary] = []
+@export var skills: Array= []
 
 
 func from_dict(dict: Dictionary) -> EquipmentCardData:
