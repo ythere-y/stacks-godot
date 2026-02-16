@@ -26,6 +26,41 @@ var _target_zoom: Vector2 = Vector2(1, 1)
 @onready var phantom_camera: PhantomCamera2D = $PhantomCamera2D
 #endregion
 
+
+#region Test Initialization
+func _spawn_all_types_and_random():
+	# 1. 获取库中所有的 ID
+	var all_ids = CardLibrary.get_all_card_ids()
+	if all_ids.is_empty():
+		print("Warning: CardLibrary is empty!")
+		return
+
+	var screen_size = get_viewport_rect().size
+	
+	# 2. 保证每种卡片至少有一张
+	for id in all_ids:
+		if id == "villager":
+			pass
+		var data = CardLibrary.create_data(id)
+		var pos = _get_random_screen_pos(screen_size)
+		spawn_card(id, pos, data)
+	
+	# 3. 再额外生成一些随机卡片（比如生成 10 张随机的）
+	var extra_cards_count = 10
+	for i in range(extra_cards_count):
+		var id = all_ids.pick_random()
+		var data = CardLibrary.create_data(id)
+		var pos = _get_random_screen_pos(screen_size)
+		spawn_card(id, pos, data)
+
+
+func _spawn_battle_cards():
+	var villager_card = CardLibrary.create_data("villager")
+	# var rabbit_card = CardLibrary.create_data("rabbit")
+
+	spawn_card("villager", Vector2(400, 300), villager_card)
+	pass
+#endregion
 #region Lifecycle
 func _ready():
 	# 确保 CardLibrary 已经加载了 CSV
@@ -38,11 +73,13 @@ func _ready():
 	if not stack_scene:
 		print("Stack scene not assigned, attempting to load...")
 		stack_scene = load("res://scenes/stack/stack.tscn") # 旧路径，确保向后兼容
-	if card_scene:
+
+
+	if Gamesettings.TEST_MODE:
 		_spawn_all_types_and_random()
+		# _spawn_battle_cards()
 	else:
-		push_error("Card scene is NOT assigned in GameBoard!")
-	
+		print("GameBoard ready. Test mode is OFF.")
 	# 初始化 _target_zoom
 	if phantom_camera:
 		_target_zoom = phantom_camera.zoom
@@ -207,28 +244,6 @@ func _find_top_card(list: Array[Card]) -> Node:
 #endregion
 
 #region Spawning Logic
-func _spawn_all_types_and_random():
-	# 1. 获取库中所有的 ID
-	var all_ids = CardLibrary.get_all_card_ids()
-	if all_ids.is_empty():
-		print("Warning: CardLibrary is empty!")
-		return
-
-	var screen_size = get_viewport_rect().size
-	
-	# 2. 保证每种卡片至少有一张
-	for id in all_ids:
-		var data = CardLibrary.create_data(id)
-		var pos = _get_random_screen_pos(screen_size)
-		spawn_card(id, pos, data)
-	
-	# 3. 再额外生成一些随机卡片（比如生成 10 张随机的）
-	var extra_cards_count = 10
-	for i in range(extra_cards_count):
-		var id = all_ids.pick_random()
-		var data = CardLibrary.create_data(id)
-		var pos = _get_random_screen_pos(screen_size)
-		spawn_card(id, pos, data)
 
 func _get_random_screen_pos(screen_size: Vector2) -> Vector2:
 	return Vector2(
@@ -236,12 +251,12 @@ func _get_random_screen_pos(screen_size: Vector2) -> Vector2:
 		randf_range(100, screen_size.y - 100)
 	)
 
-func spawn_card(card_id: String, pos: Vector2, data: Resource = null):
+func spawn_card(card_id: String, pos: Vector2, data: BaseCardData = null):
 	var new_stack = stack_scene.instantiate()
 	if data == null:
 		data = CardLibrary.create_data(card_id)
 	if data and new_stack.has_method("setup"):
-		var init_cards: Array[CardData] = [data]
+		var init_cards: Array[BaseCardData] = [data]
 		new_stack.setup(init_cards)
 	new_stack.global_position = pos
 	stacks_container.add_child(new_stack)

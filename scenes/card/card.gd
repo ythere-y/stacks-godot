@@ -12,9 +12,8 @@ const HOVER_SCALE := Gamesettings.HOVER_SCALE
 # ------------------------------------------------------------------------------
 # 节点引用与导出
 # ------------------------------------------------------------------------------
-@export var data: CardData = null
+@export var data: BaseCardData = null
 
-@onready var current_durability: int = data.max_durability if data else 1
 @onready var layout: VBoxContainer = $Layout
 @onready var progress_bar: ProgressBar = $ProgressBar
 @onready var card_visuals: PanelContainer = $Layout/CardVisuals
@@ -22,6 +21,14 @@ const HOVER_SCALE := Gamesettings.HOVER_SCALE
 @onready var card_image: TextureRect = $Layout/CardVisuals/MarginContainer/Content/ImagePanel/CardImage
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var highlight: Line2D = $Highlight
+
+#------------------------------------------------------------------------------
+# 基础初始化属性
+#------------------------------------------------------------------------------
+
+@export var display_name: String = "Card"
+@export var icon: Texture2D
+
 
 # ------------------------------------------------------------------------------
 # 状态变量
@@ -44,18 +51,23 @@ signal request_destruction(card_node: Card)
 # ------------------------------------------------------------------------------
 # 生命周期
 # ------------------------------------------------------------------------------
-func setup(new_data: CardData):
+func setup(new_data: BaseCardData):
 	data = new_data
+	display_name = tr("card_" + data.id)
+	var icon_path = "res://assets/textures/card_images/" + data.id + ".png"
+	if FileAccess.file_exists(icon_path):
+		icon = load(icon_path)
+	else:
+		icon = load("res://icon.svg")
+
 func _ready():
 	_on_ui_resized()
 	
-	
-	# 基础交互信号
 	input_event.connect(_on_input_event)
 	layout.resized.connect(_on_ui_resized)
 	_update_visuals()
 	collision_layer = 1 << 0 # 确保卡牌在正确的碰撞层级
-	name = data.display_name if data else "Card"
+	name = display_name
 	# Log.info("Card '{0}' is ready with durability {1}.".format([name, str(current_durability)]))
 
 
@@ -86,15 +98,10 @@ func _on_ui_resized():
 		])
 func _update_visuals():
 	if not data: return
-	if label: label.text = tr(data.display_name)
-	if card_image: card_image.texture = data.icon
-	name = data.display_name if data.display_name else "Card"
-	
-	var style_box = card_visuals.get_theme_stylebox("panel").duplicate()
-	if style_box is StyleBoxFlat:
-		style_box.bg_color = data.get("background_color") if data.get("background_color") else Color.WHITE
-		card_visuals.add_theme_stylebox_override("panel", style_box)
-
+	label.text = display_name
+	card_image.texture = icon
+	name = display_name
+	# TODO: update box style
 
 #endregion
 #region Interaction
@@ -140,12 +147,26 @@ func play_damage_effect():
 func die_me():
 	# 发出销毁请求信号，交由 Board 或 Stack 处理实际销毁逻辑
 	request_destruction.emit(self )
+
 func take_damage(amount: int):
-	current_durability -= amount
-	var damage_info: String = String("Card '") + name + "' takes " + str(amount) + " damage. Remaining durability: " + str(current_durability)
-	Log.info(damage_info)
+	# 需要区分是unit还是structure
 	play_damage_effect()
-	if current_durability <= 0:
-		die_me()
+	if data:
+		var die_flag = false
+		if data.type == BaseCardData.CardType.STRUCTURE:
+			die_flag = data.take_damage(amount)
+			var damage_info: String = String("Card'") + name + "'takes [" + str(amount) + "] damage. Remaining durability: [" + str(data.current_durability) + "]"
+			Log.info(damage_info)
+		if data.type == BaseCardData.CardType.RESOURCE:
+			die_flag = data.take_damage(amount)
+			var damage_info: String = String("Card'") + name + "'takes [" + str(amount) + "] damage. and died"
+			Log.info(damage_info)
+		elif data.type == BaseCardData.CardType.VILLAGER or data.type == BaseCardData.CardType.MOB:
+			die_flag = data.take_damage(amount)
+			var damage_info: String = String("Card'") + name + "'takes [" + str(amount) + "] damage. Remaining health: [" + str(data.current_health) + "]"
+			Log.info(damage_info)
+		if die_flag:
+			die_me()
+			
 	
 #endregion

@@ -1,6 +1,0 @@
-id,name_key,type,max_durability,color_html,icon_path
-villager,card_villager,unit,10,#ebf5fb,res://assets/textures/card_images/villager.png
-berry_bush,card_berry_bush,resource_source,4,#8df28d,res://assets/textures/card_images/berry_bush.png
-berry,card_berry,food,1,#e64d80,res://assets/textures/card_images/berry.png
-stone,card_stone,resource,1,#b3b3bf,res://assets/textures/card_images/stone.png
-gold_coin,card_gold_coin,currency,1,#f2d159,res://assets/textures/card_images/gold_coin.png

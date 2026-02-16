@@ -21,11 +21,11 @@ var work_component: StackWorkComponent
 var is_dragging: bool = false
 var cards: Array[Card] = []
 var drag_offset: Vector2 = Vector2.ZERO
-var init_cards: Array[CardData] = []
+var init_cards: Array[BaseCardData] = []
 #endregion
 
 #region Lifecycle
-func setup(card_list: Array[CardData]):
+func setup(card_list: Array[BaseCardData]):
 	init_cards = card_list
 	
 func _ready():
@@ -42,12 +42,12 @@ func _ready():
 	add_child(work_component)
 	
 	area_entered.connect(_on_area_entered)
-	_refresh_cards_from_data()
+	_init_cards_from_data()
 	
 	collision_shape.set_deferred("disabled", false)
 	collision_layer = Gamesettings.STACK_COLLISION_LAYER
 	collision_mask = Gamesettings.STACK_COLLISION_LAYER | Gamesettings.CARD_COLLISION_LAYER
-	name = cards[0].data.display_name + "_Stack" if not cards.is_empty() else "EmptyStack"
+	name = cards[0].display_name + "_Stack" if not cards.is_empty() else "EmptyStack"
 	layout_component.update_layout()
 
 func _physics_process(delta: float) -> void:
@@ -172,7 +172,7 @@ func end_drag():
 		if interaction_component:
 			interaction_component.clear_targets()
 		if not cards.is_empty():
-			self.name = cards[0].data.display_name + "_Stack"
+			self.name = cards[0].display_name + "_Stack"
 			# 确保 Z-index 回归
 			layout_component.update_layout()
 	
@@ -207,7 +207,7 @@ func sort_from_card(target_card: Card):
 	layout_component.update_layout()
 	stack_changed.emit()
 
-func _refresh_cards_from_data():
+func _init_cards_from_data():
 	var new_cards: Array[Card] = []
 	for card_data in init_cards:
 		var card: Card = card_scene.instantiate()

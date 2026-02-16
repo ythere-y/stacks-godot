@@ -1,0 +1,240 @@
+{
+    "villager": {
+        "id": "villager",
+        "type": "villager",
+        "can_sell": false,
+        "sell_value": 0,
+        "style": "villager",
+        "can_stack": true,
+        "atk_type": "melee",
+        "hp": 15,
+        "atk_lvl": 2,
+        "def_lvl": 2,
+        "spd_lvl": 2,
+        "hit_chance_lvl": 3,
+        "skills": [
+            {
+                "id": "gather",
+                "trigger": "on_turn_start",
+                "chance": 0.5,
+                "duration": 0.0,
+                "target": "self"
+            }
+        ],
+        "auto_move": {
+            "enabled": true,
+            "move_type": "random_work",
+            "target": "random",
+            "move_interval": 5.0,
+            "move_range": 3
+        },
+        "loot_table": [
+            {
+                "id": "body",
+                "chance": 1.0
+            }
+        ]
+    },
+    "wolf": {
+        "id": "wolf",
+        "type": "mob",
+        "can_sell": false,
+        "sell_value": 0,
+        "style": "default",
+        "can_stack": false,
+        "atk_type": "melee",
+        "hp": 20,
+        "atk_lvl": 3,
+        "def_lvl": 2,
+        "spd_lvl": 3,
+        "hit_chance_lvl": 2,
+        "team": "enemy",
+        "skills": [
+            {
+                "id": "howl",
+                "trigger": "on_turn_start",
+                "chance": 0.3,
+                "duration": 5.0,
+                "target": "self"
+            }
+        ],
+        "auto_move": {
+            "enabled": true,
+            "move_type": "walk",
+            "target": "player",
+            "move_interval": 2.0,
+            "move_range": 4
+        },
+        "loot_table": [
+            {
+                "id": "raw_meat",
+                "chance": 0.5
+            },
+            {
+                "id": "bone",
+                "chance": 0.3
+            },
+            {
+                "id": "wolf_claw",
+                "chance": 0.2
+            }
+        ]
+    },
+    "rabbit": {
+        "id": "rabbit",
+        "type": "mob",
+        "can_sell": false,
+        "sell_value": 0,
+        "style": "default",
+        "can_stack": false,
+        "atk_type": "melee",
+        "hp": 5,
+        "atk_lvl": 2,
+        "def_lvl": 1,
+        "spd_lvl": 3,
+        "hit_chance_lvl": 2,
+        "team": "neutral",
+        "skills": [
+            {
+                "id": "frenzy",
+                "trigger": "on_attack_hit",
+                "chance": 0.1,
+                "duration": 10.0,
+                "target": "self"
+            }
+        ],
+        "auto_move": {
+            "enabled": true,
+            "move_type": "jump",
+            "target": "random",
+            "move_interval": 3.0,
+            "move_range": 5
+        },
+        "loot_table": [
+            {
+                "id": "raw_meat",
+                "chance": 0.17
+            },
+            {
+                "id": "carrot",
+                "chance": 0.17
+            },
+            {
+                "id": "rabbit_hat",
+                "chance": 0.33,
+                "condition": "unique_equip"
+            }
+        ]
+    },
+    "berry_bush": {
+        "id": "berry_bush",
+        "type": "structure",
+        "can_sell": true,
+        "sell_value": 0,
+        "style": "RESOURCE_STRUCTURE",
+        "can_stack": true,
+        "durability": 4,
+        "skills": [],
+        "loot_table": [
+            {
+                "id": "berry",
+                "chance": 1.0
+            }
+        ]
+    },
+    "berry": {
+        "id": "berry",
+        "type": "food",
+        "can_sell": true,
+        "sell_value": 1,
+        "style": "food",
+        "can_stack": true,
+        "feed_value": 1,
+        "skills": []
+    },
+    "carrot": {
+        "id": "carrot",
+        "type": "food",
+        "can_sell": true,
+        "sell_value": 1,
+        "style": "food",
+        "can_stack": true,
+        "feed_value": 1,
+        "skills": []
+    },
+    "raw_meat": {
+        "id": "raw_meat",
+        "type": "food",
+        "can_sell": true,
+        "sell_value": 2,
+        "style": "food",
+        "can_stack": true,
+        "feed_value": 2,
+        "skills": []
+    },
+    "rabbit_hat": {
+        "id": "rabbit_hat",
+        "type": "equipment",
+        "can_sell": true,
+        "sell_value": 5,
+        "style": "hat",
+        "can_stack": true,
+        "hp_bonus": 0,
+        "atk_lvl": 2,
+        "def_lvl": 1,
+        "spd_lvl": 3,
+        "hit_chance_lvl": 2,
+        "skills": []
+    },
+    "bone": {
+        "id": "bone",
+        "type": "resource",
+        "can_sell": true,
+        "sell_value": 1,
+        "style": "material",
+        "can_stack": true,
+        "skills": []
+    },
+    "wolf_claw": {
+        "id": "wolf_claw",
+        "type": "resource",
+        "can_sell": true,
+        "sell_value": 3,
+        "style": "material",
+        "can_stack": true,
+        "skills": []
+    },
+    "body": {
+        "id": "body",
+        "type": "resource",
+        "can_sell": false,
+        "sell_value": 0,
+        "style": "material",
+        "can_stack": true,
+        "skills": []
+    },
+    "bronze_coin": {
+        "id": "bronze_coin",
+        "type": "currency",
+        "can_sell": false,
+        "sell_value": 0,
+        "style": "currency",
+        "can_stack": true
+    },
+    "silver_coin": {
+        "id": "silver_coin",
+        "type": "currency",
+        "can_sell": true,
+        "sell_value": 100,
+        "style": "currency",
+        "can_stack": true
+    },
+    "gold_coin": {
+        "id": "gold_coin",
+        "type": "currency",
+        "can_sell": true,
+        "sell_value": 10000,
+        "style": "currency",
+        "can_stack": true
+    }
+}

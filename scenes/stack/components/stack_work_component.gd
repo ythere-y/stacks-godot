@@ -42,7 +42,6 @@ func _check_recipe_valid(recipe: Dictionary) -> bool:
 	var card_ids_map: Dictionary = {}
 	for card in stack.cards:
 		if not card.data: continue
-		if card.current_durability <= 0: continue # 跳过已损坏
 		var id = card.data.id
 		if card_ids_map.has(id):
 			card_ids_map[id] += 1
@@ -73,7 +72,6 @@ func _check_recipe():
 	var card_ids_map: Dictionary = {}
 	for card in stack.cards:
 		if not card.data: continue
-		if card.current_durability <= 0: continue # 跳过已损坏的卡牌
 		var id = card.data.id
 		if card_ids_map.has(id):
 			card_ids_map[id] += 1

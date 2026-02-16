@@ -2,6 +2,19 @@ id,zh,en
 card_berry,浆果,Berry
 card_villager,村民,Villager
 card_berry_bush,浆果丛,Berry Bush
-card_gold_coin,金币,Gold Coin
 card_stone,石头,Stone
+card_wood,木头,Wood
+card_wolf,狼,Wolf
+card_bear,熊,Bear
+card_rabbit,兔子,Rabbit
+card_rabbit_hat,兔子帽,Rabbit Hat
+card_raw_meat,生肉,Raw Meat
+card_bronze_coin,铜币,Bronze Coin
+card_silver_coin,银币,Silver Coin
+card_gold_coin,金币,Gold Coin
+card_body,尸体,Body
+card_wolf_claw,狼爪,Wolf Claw
+card_bear_claw,熊爪,Bear Claw
+card_bone,骨头,Bone
+card_carrot,胡萝卜,Carrot
 msg_pickup,你拾取了 {item},You picked up {item}

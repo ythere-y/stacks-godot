@@ -60,14 +60,14 @@ theme_override_constants/margin_bottom = 0
 [node name="Content" type="VBoxContainer" parent="Layout/CardVisuals/MarginContainer" unique_id=1508155905]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 0
 
 [node name="Label" type="Label" parent="Layout/CardVisuals/MarginContainer/Content" unique_id=1161649557]
+custom_minimum_size = Vector2(0, 25)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
 theme_override_font_sizes/font_size = 14
 text = "Card Name"
-horizontal_alignment = 1
 vertical_alignment = 1
 text_overrun_behavior = 3
 
