@@ -83,10 +83,6 @@ func add_cards(card_list: Array[Card]):
 	
 	layout_component.update_layout()
 	stack_changed.emit()
-func _on_card_smoke_effect(card_cmp: Card, position: Vector2):
-	# 在card的层级的下面位置生成一个烟雾特效
-	# 烟雾特效使用move child方式移动到目标card的层级下面
-	pass
 
 
 func _on_card_request_destruction(card_node: Card):
@@ -135,9 +131,6 @@ func split_stack(card_list: Array[Card]) -> CardStack:
 		else:
 			stay_cards.append(card)
 	cards = stay_cards
-	
-	if get_parent():
-		get_parent().add_child(new_stack)
 	
 	new_stack.add_cards(move_cards)
 	

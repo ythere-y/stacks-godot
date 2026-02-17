@@ -27,6 +27,23 @@ func spawn_stack(card_ids: Array, pos: Vector2) -> void:
 	stack = new_stack
 	Log.info("Spawned battle stack with cards: " + str(card_ids) + " at position: " + str(pos))
 
+func spawn_card(card_id: String, pos: Vector2, data: BaseCardData = null):
+	var new_stack = stack_scene.instantiate()
+	if data == null:
+		data = CardLibrary.create_data(card_id)
+	if data and new_stack.has_method("setup"):
+		var init_cards: Array[BaseCardData] = [data]
+		new_stack.setup(init_cards)
+	new_stack.global_position = pos
+	self.add_child(new_stack)
+	print("Spawned stack with card: ", card_id)
+
+func _on_card_production_complete(output_ids: Array, pos: Vector2):
+	for id in output_ids:
+		var random_offset = Vector2(randf_range(-20, 20), randf_range(-20, 20))
+		spawn_card(id, pos + random_offset)
+
+
 func _spawn_battle_stack():
 	var battle_list = ["villager", "villager", "villager", "wolf", "wolf", "wolf", "wolf", "wolf", ]
 	# 获取画布中心
@@ -44,6 +61,9 @@ func _ready() -> void:
 	btn_behit.pressed.connect(_be_hit)
 	btn_death.pressed.connect(_death)
 	btn_reset.pressed.connect(_reset)
+
+	SignalBus.card_spawn_requested.connect(_on_card_production_complete)
+
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
@@ -70,6 +90,12 @@ func _be_hit():
 	var enemy_card = stack.battle_component.enemies.pick_random()
 	enemy_card.card.take_damage(0)
 func _death():
+	if stack == null:
+		return
+	var ally_card = stack.battle_component.alies.pick_random()
+	ally_card.card.take_damage(999)
+	var enemy_card = stack.battle_component.enemies.pick_random()
+	enemy_card.card.take_damage(999)
 	pass
 func _reset():
 	if stack:

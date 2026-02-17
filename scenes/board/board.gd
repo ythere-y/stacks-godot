@@ -184,7 +184,8 @@ func _on_battle_started(stack: CardStack):
 	if new_stack:
 		new_stack.name = stack.name + "_Unbattle"
 		new_stack.global_position = stack.global_position + Vector2(50, 50) # 稍微偏移一下位置
-		stacks_container.add_child(new_stack)
+		if not new_stack.get_parent():
+			stacks_container.add_child(new_stack)
 		print("Split unbattle cards into new stack: ", new_stack.name)
 		# TODO:这里可以添加一些过渡动画，比如新stack从原stack飞出来，或者淡入等
 
@@ -201,7 +202,8 @@ func _on_card_drag_started(target_card: Card, single: bool = false):
 	# split_stack 内部已经把 new_stack 加到 stacks_container 了，并且设置好了 global_position
 	# new_stack 包含了 target_card (及可能的其他卡片)
 	var temp_stack: CardStack = stack_parent.start_drag_from_card(target_card, single)
-	
+	if not temp_stack.get_parent():
+		stacks_container.add_child(temp_stack)
 	if not temp_stack:
 		push_error("Failed to create drag stack")
 		is_dragging = false

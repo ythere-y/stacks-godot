@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://b068w4rinyhbq"]
+
+[ext_resource type="Script" uid="uid://1u2rqiu5hipo" path="res://scenes/effects/smoke/smoke_effect.gd" id="1_tegnf"]
+
+[sub_resource type="Gradient" id="Gradient_enhgx"]
+offsets = PackedFloat32Array(0, 0.5, 0.7, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.5019608, 1, 1, 1, 0, 1, 1, 1, 0)
+metadata/_snap_enabled = true
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_tjfkn"]
+gradient = SubResource("Gradient_enhgx")
+use_hdr = true
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[sub_resource type="Curve" id="Curve_tegnf"]
+_data = [Vector2(0, 0.5), 0.0, 0.0, 0, 0, Vector2(0.2, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="Gradient" id="Gradient_tegnf"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[node name="SmokeEffect" type="CPUParticles2D" unique_id=1025640936]
+emitting = false
+amount = 12
+texture = SubResource("GradientTexture2D_tjfkn")
+lifetime = 0.8
+one_shot = true
+explosiveness = 1.0
+randomness = 0.1
+lifetime_randomness = 0.1
+spread = 180.0
+gravity = Vector2(0, -100)
+initial_velocity_min = 50.0
+initial_velocity_max = 120.0
+scale_amount_max = 2.0
+scale_amount_curve = SubResource("Curve_tegnf")
+color_ramp = SubResource("Gradient_tegnf")
+script = ExtResource("1_tegnf")

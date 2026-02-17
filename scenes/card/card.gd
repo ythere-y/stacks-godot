@@ -13,6 +13,7 @@ const HOVER_SCALE := Gamesettings.HOVER_SCALE
 # 节点引用与导出
 # ------------------------------------------------------------------------------
 @export var data: BaseCardData = null
+const smoke_effect_scene: PackedScene = preload("res://scenes/effects/smoke/smoke_effect.tscn")
 
 @onready var layout: MarginContainer = $Layout
 @onready var progress_bar: ProgressBar = $ProgressBar
@@ -46,7 +47,6 @@ var hover_target: Card = null # 拖拽时潜在的吸附目标
 # 发射信号
 # ------------------------------------------------------------------------------
 signal request_destruction(card_node: Card)
-signal request_smoke_effect(card_node: Card, position: Vector2)
 #endregion
 
 #region Lifecycle
@@ -238,41 +238,46 @@ func signal_connect(stack):
 		return
 	signal_connected = true
 	request_destruction.connect(stack._on_card_request_destruction)
-	request_smoke_effect.connect(stack._on_card_smoke_effect)
+
+func _on_smoke_finished():
+	# Log.info("Smoke effect finished for card: " + name)
+	request_destruction.emit(self )
+
+func _on_card_smoke_effect(sm_position: Vector2):
+	var smoke_effect = smoke_effect_scene.instantiate()
+	# Log.info("Emitting smoke effect at position: " + str(sm_position))
+	add_child(smoke_effect)
+	smoke_effect.effect_finished.connect(_on_smoke_finished)
+	smoke_effect.global_position = sm_position
+	smoke_effect.rotation = randf_range(0, TAU)
 
 func die_me():
 	# 1. 立即禁用碰撞和交互，防止玩家在死亡动画期间继续拖拽或触发逻辑
-	$CollisionShape2D.set_deferred("disabled", true)
+	collision_shape.set_deferred("disabled", true)
 	
 	# 确保 Layout 会忽略鼠标
 	if has_node("Layout"):
-		$Layout.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		layout.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		
 	var tween = create_tween()
-	var visuals = $Layout/CardVisuals # 我们只缩小视觉部分
 	
 	# 2. 死亡视觉动画：稍微放大一点点（蓄力），然后瞬间缩小到0并变透明
-	tween.tween_property(visuals, "scale", Vector2(1.1, 1.1), 0.05)
+	tween.tween_property(card_visuals, "scale", Vector2(1.1, 1.1), 0.05)
 	
-	tween.parallel().tween_property(visuals, "scale", Vector2(0.0, 0.0), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-	tween.parallel().tween_property(visuals, "modulate:a", 0.0, 0.2)
+	tween.parallel().tween_property(card_visuals, "scale", Vector2(0.0, 0.0), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tween.parallel().tween_property(card_visuals, "modulate:a", 0.0, 0.2)
 	
 	# 3. 动画进行到一半（卡牌缩没的瞬间），发出产生烟雾和掉落的信号
 	# 注意：这里的 global_position 是为了让外部知道在哪里生成
 	tween.tween_callback(func():
-		request_smoke_effect.emit(self , global_position)
-		
+		_on_card_smoke_effect(global_position)
 		# 假设你的卡牌数据里有 drops 数组
 		if data and data.has_method("get_drops"):
-			var drop_id = data.get_drops()
-			if drop_id != "":
-				SignalBus.card_spawn_requested.emit(drop_id, global_position)
+			var drop_ids = data.get_drops()
+			Log.info("Card '{0}' drops: {1}".format([name, str(drop_ids)]))
+			SignalBus.card_spawn_requested.emit(drop_ids, global_position)
 	).set_delay(0.15) # 稍微延迟一点产生掉落物，手感更好
 
-	# 4. 动画彻底结束后，才发出销毁请求。此时 Stack 才会重新排版
-	tween.tween_callback(func():
-		request_destruction.emit(self )
-	)
 func take_damage(amount: int):
 	# 需要区分是unit还是structure
 	play_damage_effect()

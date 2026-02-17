@@ -19,7 +19,6 @@ shadow_offset = Vector2(4, 4)
 
 [node name="Card" type="Area2D" unique_id=1458303406]
 script = ExtResource("1_script")
-display_name = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=498638119]
 shape = SubResource("RectangleShape2D_card")

@@ -13,12 +13,13 @@ func _ready():
 		stack = get_parent() as CardStack
 
 func process_physics(delta: float):
-	if not stack or stack.interaction_component.is_dragging: return
+	if not stack: return
+	if stack.interaction_component.is_dragging: return
+	if stack.battle_component.is_battling: return
 	
 	var neighbors = stack.get_overlapping_areas()
 	var push_vector = Vector2.ZERO
 	var count = 0
-	
 	for area in neighbors:
 		# 仅与其他 Stack 互斥
 		if area is CardStack and area != stack and not area.interaction_component.is_dragging:

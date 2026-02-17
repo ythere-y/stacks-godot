@@ -40,6 +40,12 @@ enum AutoMoveType {
 @export var auto_move_type: AutoMoveType = AutoMoveType.NONE
 @export var auto_move_params: Dictionary = {} # Example: {"walk": {"speed": 2.0}, "jump": {"height": 3.0}, "dash": {"distance": 5.0, "cooldown": 4.0}}
 @export var loot_table: Array = [] # Example: [{id: "gold_coin", chance: 0.5}, {id: "iron_sword", chance: 0.1}]
+func get_drops() -> Array[String]:
+	var drops: Array[String] = []
+	for item in loot_table:
+		if (randi() % 100 + 1) / float(100) <= item.chance:
+			drops.append(item.id)
+	return drops
 func update_current_states():
 	# 根据当前等级或其他因素更新当前状态值
 	# TODO：后续需要加入装备、buff等因素对状态的影响
